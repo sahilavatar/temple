@@ -442,7 +442,7 @@ export class TempleTextures {
     // Load the Lord Hanuman carrying Dronagiri mountain image
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = '/textures/hanuman_flag_emblem.jpg';
+    img.src = `${import.meta.env.BASE_URL}textures/hanuman_flag_emblem.jpg`;
 
     const drawHanumanImage = () => {
       renderBaseFlag();

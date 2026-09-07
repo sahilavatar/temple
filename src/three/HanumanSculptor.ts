@@ -22,7 +22,7 @@ export class HanumanSculptor {
 
     // High-resolution photorealistic marble stela texture
     const textureLoader = new THREE.TextureLoader();
-    const stelaTexture = textureLoader.load('/textures/hanuman_marble_stela.jpg');
+    const stelaTexture = textureLoader.load(`${import.meta.env.BASE_URL}textures/hanuman_marble_stela.jpg`);
     stelaTexture.colorSpace = THREE.SRGBColorSpace;
 
     // Polished white Makrana marble material
