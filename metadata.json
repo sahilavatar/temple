@@ -1,0 +1,6 @@
+{
+  "name": "Virtual Hanuman Temple 3D",
+  "description": "An interactive 3D virtual ancient Indian Hindu Hanuman temple featuring POV exploration, authentic architecture, virtual diya lamps, sacred bell ringing, flower offerings, and Hanuman Chalisa devotional player.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
