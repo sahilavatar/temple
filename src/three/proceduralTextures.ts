@@ -525,39 +525,58 @@ export class TempleTextures {
     if (this.cache.has(key)) return this.cache.get(key)!;
 
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 1024;
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Sunlit granite / high altitude rock gradient
-    const grad = ctx.createLinearGradient(0, 0, 512, 512);
-    grad.addColorStop(0, '#544c45');
-    grad.addColorStop(0.3, '#6e6256');
-    grad.addColorStop(0.7, '#433b35');
-    grad.addColorStop(1, '#2c2622');
+    // Sunlit Himalayan granite / high-altitude gneiss gradient
+    const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
+    grad.addColorStop(0, '#5a524a');
+    grad.addColorStop(0.25, '#6b6155');
+    grad.addColorStop(0.55, '#484039');
+    grad.addColorStop(0.85, '#352e29');
+    grad.addColorStop(1, '#241f1c');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 1024, 1024);
 
-    // Rock strata lines and rugged striations
-    ctx.strokeStyle = 'rgba(215, 200, 180, 0.15)';
-    ctx.lineWidth = 3;
-    for (let y = 0; y < 512; y += 18) {
+    // Stratified geological metamorphic bedding planes and joint fissures
+    for (let y = 0; y < 1024; y += 14) {
+      const isMajorFault = y % 56 === 0;
+      ctx.strokeStyle = isMajorFault
+        ? 'rgba(15, 12, 10, 0.45)'
+        : 'rgba(215, 205, 190, 0.14)';
+      ctx.lineWidth = isMajorFault ? 3.5 : 1.8;
       ctx.beginPath();
       ctx.moveTo(0, y);
-      for (let x = 0; x < 512; x += 40) {
-        ctx.lineTo(x, y + (Math.random() - 0.5) * 16);
+      for (let x = 0; x < 1024; x += 32) {
+        ctx.lineTo(x, y + (Math.random() - 0.5) * (isMajorFault ? 16 : 8));
       }
       ctx.stroke();
     }
 
-    // Granite speckle noise
-    const imgData = ctx.getImageData(0, 0, 512, 512);
+    // Vertical cleavage joints and frost-shatter couloirs
+    for (let i = 0; i < 40; i++) {
+      ctx.strokeStyle = 'rgba(25, 20, 18, 0.35)';
+      ctx.lineWidth = 2 + Math.random() * 2.5;
+      ctx.beginPath();
+      const sx = Math.random() * 1024;
+      ctx.moveTo(sx, 0);
+      let cx = sx;
+      for (let y = 0; y < 1024; y += 40) {
+        cx += (Math.random() - 0.5) * 20;
+        ctx.lineTo(cx, y);
+      }
+      ctx.stroke();
+    }
+
+    // Granite feldspar, quartz crystals, and dark biotite mica speckling
+    const imgData = ctx.getImageData(0, 0, 1024, 1024);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
-      const n = (Math.random() - 0.5) * 45;
+      const n = (Math.random() - 0.5) * 48;
       data[i] = Math.min(255, Math.max(0, data[i] + n));
-      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n));
-      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n * 1.1));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n * 0.95));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n * 0.85));
     }
     ctx.putImageData(imgData, 0, 0);
 
@@ -570,37 +589,79 @@ export class TempleTextures {
   }
 
   /**
-   * Snow-capped Himalayan mountain summit texture with glacial ice and rock fissures
+   * Tangent-space Normal Map for Himalayan Mountain Rock Crags
+   */
+  public static getMountainRockNormal(): THREE.CanvasTexture {
+    const key = 'mountain_rock_normal';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const rockTex = this.getMountainRock();
+    const texture = this.generateNormalMap(rockTex.image as HTMLCanvasElement, 3.2);
+    texture.repeat.set(4, 4);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Snow-capped Himalayan mountain summit texture with glacial ice, firn, and rock fissures
    */
   public static getSnowCap(): THREE.CanvasTexture {
     const key = 'snow_cap';
     if (this.cache.has(key)) return this.cache.get(key)!;
 
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 1024;
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Glacial snow gradient with cold blue mountain shadow
-    const grad = ctx.createLinearGradient(0, 0, 0, 512);
-    grad.addColorStop(0, '#f8fafc'); // Pure pristine snow
-    grad.addColorStop(0.45, '#edf2f7'); // High-altitude neve
-    grad.addColorStop(0.75, '#cbd5e1'); // Ice shadow
-    grad.addColorStop(1.0, '#475569'); // Exposed dark summit crag bedrock
+    // Glacial snow gradient with cold blue mountain shadow and pristine firn
+    const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+    grad.addColorStop(0, '#ffffff'); // Pure summit snow
+    grad.addColorStop(0.35, '#f1f5f9'); // High-altitude neve
+    grad.addColorStop(0.65, '#cbd5e1'); // Ice shadow
+    grad.addColorStop(0.85, '#94a3b8'); // Crevasse rim
+    grad.addColorStop(1.0, '#334155'); // Exposed dark summit arête bedrock
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 1024, 1024);
 
-    // Natural rock ribs and couloirs cutting through snow
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
-    ctx.lineWidth = 2.5;
-    for (let i = 0; i < 24; i++) {
+    // Glacial blue-tinted crevasse shadows
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 30; i++) {
       ctx.beginPath();
-      const startX = Math.random() * 512;
-      ctx.moveTo(startX, 150 + Math.random() * 100);
+      const sx = Math.random() * 1024;
+      ctx.moveTo(sx, 200 + Math.random() * 300);
+      let cx = sx;
+      for (let y = 300; y < 900; y += 40) {
+        cx += (Math.random() - 0.5) * 24;
+        ctx.lineTo(cx, y);
+      }
+      ctx.stroke();
+    }
+
+    // Natural dark rock couloirs and knife-edge arêtes cutting through snow
+    ctx.strokeStyle = 'rgba(30, 41, 59, 0.6)';
+    ctx.lineWidth = 3.5;
+    for (let i = 0; i < 35; i++) {
+      ctx.beginPath();
+      const startX = Math.random() * 1024;
+      ctx.moveTo(startX, 250 + Math.random() * 200);
       let curX = startX;
-      for (let y = 250; y < 512; y += 30) {
-        curX += (Math.random() - 0.5) * 20;
+      for (let y = 450; y < 1024; y += 35) {
+        curX += (Math.random() - 0.5) * 30;
         ctx.lineTo(curX, y);
+      }
+      ctx.stroke();
+    }
+
+    // Wind-sculpted sastrugi (horizontal windblown snow wave ridges)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 2;
+    for (let y = 50; y < 600; y += 12) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      for (let x = 0; x < 1024; x += 30) {
+        ctx.lineTo(x, y + Math.sin(x * 0.05) * 4);
       }
       ctx.stroke();
     }
@@ -687,63 +748,101 @@ export class TempleTextures {
     if (this.cache.has(key)) return this.cache.get(key)!;
 
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 1024;
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Rich multi-tone emerald mountain meadow base
-    const grad = ctx.createLinearGradient(0, 0, 512, 512);
+    // Rich multi-tone emerald mountain meadow loam base
+    const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
     grad.addColorStop(0, '#15803d'); // Vibrant emerald green
-    grad.addColorStop(0.35, '#166534'); // Deep forest meadow
-    grad.addColorStop(0.7, '#14532d'); // Rich mountain grass
+    grad.addColorStop(0.25, '#166534'); // Deep alpine meadow
+    grad.addColorStop(0.5, '#14532d'); // Rich mountain grass
+    grad.addColorStop(0.75, '#1e3a24'); // Loamy humus soil undertone
     grad.addColorStop(1, '#15803d');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 1024, 1024);
 
-    // Dappled sunlit moss & blade variation
-    for (let i = 0; i < 3000; i++) {
-      const gx = Math.random() * 512;
-      const gy = Math.random() * 512;
-      const len = 4 + Math.random() * 9;
-      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.7;
+    // Dappled organic soil and moss mottling
+    for (let m = 0; m < 400; m++) {
+      const mx = Math.random() * 1024;
+      const my = Math.random() * 1024;
+      const mr = 8 + Math.random() * 24;
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(20, 83, 45, 0.45)' : 'rgba(30, 58, 36, 0.35)';
+      ctx.beginPath();
+      ctx.arc(mx, my, mr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // High-density interwoven alpine grass blades (6,500 blades)
+    for (let i = 0; i < 6500; i++) {
+      const gx = Math.random() * 1024;
+      const gy = Math.random() * 1024;
+      const len = 6 + Math.random() * 14;
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.9;
 
       const greenTone = Math.random();
-      if (greenTone < 0.4) {
-        ctx.strokeStyle = '#22c55e'; // Fresh bright green blade
-      } else if (greenTone < 0.75) {
-        ctx.strokeStyle = '#16a34a'; // Vibrant grass green
+      if (greenTone < 0.35) {
+        ctx.strokeStyle = '#22c55e'; // Fresh bright blade
+      } else if (greenTone < 0.65) {
+        ctx.strokeStyle = '#16a34a'; // Vibrant meadow green
+      } else if (greenTone < 0.85) {
+        ctx.strokeStyle = '#15803d'; // Rich emerald
       } else {
-        ctx.strokeStyle = '#14532d'; // Deep shadow green
+        ctx.strokeStyle = '#84cc16'; // Sunlit lime blade tip
       }
-      ctx.lineWidth = 1 + Math.random() * 1.5;
+      ctx.lineWidth = 1.2 + Math.random() * 1.5;
 
       ctx.beginPath();
       ctx.moveTo(gx, gy);
-      ctx.lineTo(gx + Math.cos(angle) * len, gy + Math.sin(angle) * len);
+      const cpx = gx + Math.cos(angle) * (len * 0.5) + (Math.random() - 0.5) * 4;
+      const cpy = gy + Math.sin(angle) * (len * 0.5);
+      const endx = gx + Math.cos(angle) * len;
+      const endy = gy + Math.sin(angle) * len;
+      ctx.quadraticCurveTo(cpx, cpy, endx, endy);
       ctx.stroke();
     }
 
-    // Scattered tiny alpine wildflowers (Marigolds, rhododendrons, daisies)
-    const flowerColors = ['#fbbf24', '#f59e0b', '#f43f5e', '#ffffff', '#fb7185'];
-    for (let f = 0; f < 180; f++) {
-      const fx = Math.random() * 512;
-      const fy = Math.random() * 512;
-      const r = 1.5 + Math.random() * 2.5;
-      ctx.fillStyle = flowerColors[Math.floor(Math.random() * flowerColors.length)];
-      ctx.beginPath();
-      ctx.arc(fx, fy, r, 0, Math.PI * 2);
-      ctx.fill();
+    // Wild alpine clover trefoils (Trifolium repens / alpinum)
+    for (let c = 0; c < 250; c++) {
+      const cx = Math.random() * 1024;
+      const cy = Math.random() * 1024;
+      const clovR = 3.5 + Math.random() * 3.0;
 
-      // Golden flower center
-      ctx.fillStyle = '#b45309';
-      ctx.beginPath();
-      ctx.arc(fx, fy, r * 0.4, 0, Math.PI * 2);
-      ctx.fill();
+      for (let leaf = 0; leaf < 3; leaf++) {
+        const la = (leaf / 3) * Math.PI * 2 + Math.random() * 0.2;
+        const lx = cx + Math.cos(la) * clovR;
+        const ly = cy + Math.sin(la) * clovR;
+
+        ctx.fillStyle = '#4ade80';
+        ctx.beginPath();
+        ctx.arc(lx, ly, clovR * 0.75, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner darker crescent
+        ctx.fillStyle = '#166534';
+        ctx.beginPath();
+        ctx.arc(lx, ly, clovR * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(10, 10);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Tangent-space Normal Map for Alpine Meadow Grass Ground
+   */
+  public static getLushAlpineGrassNormal(): THREE.CanvasTexture {
+    const key = 'lush_alpine_grass_normal';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const grassTex = this.getLushAlpineGrass();
+    const texture = this.generateNormalMap(grassTex.image as HTMLCanvasElement, 2.6);
     texture.repeat.set(10, 10);
     this.cache.set(key, texture);
     return texture;
@@ -757,53 +856,53 @@ export class TempleTextures {
     if (this.cache.has(key)) return this.cache.get(key)!;
 
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 1024;
+    canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
     // Realistic geological gradient: exposed high-altitude slate crags transitioning down into dark pine scree
-    const grad = ctx.createLinearGradient(0, 0, 0, 512);
+    const grad = ctx.createLinearGradient(0, 0, 0, 1024);
     grad.addColorStop(0.0, '#475569'); // High elevation slate rock & talus
-    grad.addColorStop(0.25, '#3b4452'); // Rugged metamorphic stone
-    grad.addColorStop(0.55, '#2f3b33'); // Subalpine scrub & scree
-    grad.addColorStop(0.80, '#223326'); // Dense Himalayan pine / deodar forest
-    grad.addColorStop(1.0, '#19261c'); // Deep valley shadow
+    grad.addColorStop(0.22, '#3b4452'); // Rugged metamorphic stone
+    grad.addColorStop(0.48, '#2f3b33'); // Subalpine scrub & scree
+    grad.addColorStop(0.72, '#223326'); // Dense Himalayan pine / deodar forest
+    grad.addColorStop(1.0, '#162319'); // Deep valley shadow
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 1024, 1024);
 
     // Geological horizontal rock strata bands
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.18)';
-    ctx.lineWidth = 2;
-    for (let y = 0; y < 350; y += 16) {
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+    ctx.lineWidth = 2.5;
+    for (let y = 0; y < 650; y += 22) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      for (let x = 0; x < 512; x += 32) {
-        ctx.lineTo(x, y + (Math.random() - 0.5) * 12);
+      for (let x = 0; x < 1024; x += 45) {
+        ctx.lineTo(x, y + (Math.random() - 0.5) * 16);
       }
       ctx.stroke();
     }
 
     // Vertical snowmelt / talus chutes
-    ctx.strokeStyle = 'rgba(30, 41, 59, 0.25)';
-    ctx.lineWidth = 3;
-    for (let i = 0; i < 18; i++) {
+    ctx.strokeStyle = 'rgba(25, 33, 44, 0.35)';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 28; i++) {
       ctx.beginPath();
-      const sx = Math.random() * 512;
+      const sx = Math.random() * 1024;
       ctx.moveTo(sx, 0);
       let cx = sx;
-      for (let y = 0; y < 512; y += 40) {
-        cx += (Math.random() - 0.5) * 16;
+      for (let y = 0; y < 1024; y += 50) {
+        cx += (Math.random() - 0.5) * 25;
         ctx.lineTo(cx, y);
       }
       ctx.stroke();
     }
 
     // Natural Himalayan conifer pine tree clusters (dark, earthy, realistic conifer green)
-    for (let i = 0; i < 950; i++) {
-      const cx = Math.random() * 512;
-      const cy = 180 + Math.random() * 332; // mostly lower two-thirds
-      const rad = 2 + Math.random() * 6;
-      ctx.fillStyle = Math.random() > 0.4 ? '#1c2e22' : '#273e2f';
+    for (let i = 0; i < 1800; i++) {
+      const cx = Math.random() * 1024;
+      const cy = 350 + Math.random() * 674; // lower two-thirds elevation
+      const rad = 3 + Math.random() * 9;
+      ctx.fillStyle = Math.random() > 0.4 ? '#182b1f' : '#233829';
       ctx.beginPath();
       ctx.arc(cx, cy, rad, 0, Math.PI * 2);
       ctx.fill();
@@ -816,4 +915,1026 @@ export class TempleTextures {
     this.cache.set(key, texture);
     return texture;
   }
+
+  /**
+   * Generates a tangent-space normal map from a grayscale canvas heightfield
+   */
+  private static generateNormalMap(
+    sourceCanvas: HTMLCanvasElement,
+    strength: number = 2.5
+  ): THREE.CanvasTexture {
+    const w = sourceCanvas.width;
+    const h = sourceCanvas.height;
+    const srcCtx = sourceCanvas.getContext('2d')!;
+    const srcData = srcCtx.getImageData(0, 0, w, h).data;
+
+    const normCanvas = document.createElement('canvas');
+    normCanvas.width = w;
+    normCanvas.height = h;
+    const normCtx = normCanvas.getContext('2d')!;
+    const normImgData = normCtx.createImageData(w, h);
+    const dst = normImgData.data;
+
+    const getHeight = (x: number, y: number): number => {
+      const px = ((x % w) + w) % w;
+      const py = ((y % h) + h) % h;
+      const idx = (py * w + px) * 4;
+      return (srcData[idx] * 0.299 + srcData[idx + 1] * 0.587 + srcData[idx + 2] * 0.114) / 255.0;
+    };
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        // Sobel / central difference gradient
+        const left = getHeight(x - 1, y);
+        const right = getHeight(x + 1, y);
+        const top = getHeight(x, y - 1);
+        const bottom = getHeight(x, y + 1);
+
+        const dx = (right - left) * strength;
+        const dy = (bottom - top) * strength;
+        const dz = 1.0;
+
+        // Normalize
+        const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        const nx = -dx / len;
+        const ny = -dy / len;
+        const nz = dz / len;
+
+        const outIdx = (y * w + x) * 4;
+        dst[outIdx] = Math.round((nx * 0.5 + 0.5) * 255);
+        dst[outIdx + 1] = Math.round((ny * 0.5 + 0.5) * 255);
+        dst[outIdx + 2] = Math.round((nz * 0.5 + 0.5) * 255);
+        dst[outIdx + 3] = 255;
+      }
+    }
+
+    normCtx.putImageData(normImgData, 0, 0);
+    const texture = new THREE.CanvasTexture(normCanvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    return texture;
+  }
+
+  /**
+   * Dressed Ashlar Temple Sandstone with realistic stone coursing,
+   * subtle mortar joints, chisel dressing, and iron oxide mineral warmth.
+   */
+  public static getAshlarStone(): THREE.CanvasTexture {
+    const key = 'ashlar_stone';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Base sandstone warm gradient
+    const baseGrad = ctx.createLinearGradient(0, 0, 512, 512);
+    baseGrad.addColorStop(0, '#c28557');
+    baseGrad.addColorStop(0.5, '#b37446');
+    baseGrad.addColorStop(1, '#9e6137');
+    ctx.fillStyle = baseGrad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Stone courses (rows of blocks)
+    const rows = 8;
+    const rowH = 512 / rows;
+
+    for (let r = 0; r < rows; r++) {
+      const y = r * rowH;
+      const isShifted = r % 2 === 1;
+      const cols = 4;
+      const colW = 512 / cols;
+      const offsetX = isShifted ? colW / 2 : 0;
+
+      for (let c = -1; c <= cols; c++) {
+        const x = c * colW + offsetX;
+        if (x + colW < 0 || x > 512) continue;
+
+        // Individual block tone variation (micro geology variation)
+        const toneVar = (Math.sin(r * 3.7 + c * 5.3) * 0.5 + 0.5) * 0.25 - 0.12;
+        if (toneVar > 0) {
+          ctx.fillStyle = `rgba(245, 190, 140, ${toneVar})`;
+        } else {
+          ctx.fillStyle = `rgba(50, 25, 10, ${Math.abs(toneVar)})`;
+        }
+        ctx.fillRect(x + 2, y + 2, colW - 4, rowH - 4);
+
+        // Chisel striations inside each block
+        ctx.strokeStyle = 'rgba(70, 35, 15, 0.09)';
+        ctx.lineWidth = 1.5;
+        for (let l = 6; l < rowH - 6; l += 5) {
+          ctx.beginPath();
+          ctx.moveTo(x + 4, y + l);
+          ctx.lineTo(x + colW - 4, y + l + (Math.random() - 0.5) * 1.5);
+          ctx.stroke();
+        }
+
+        // Deep recessed mortar seam (dark shadow inside groove)
+        ctx.strokeStyle = 'rgba(35, 18, 10, 0.45)';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(x + 1, y + 1, colW - 2, rowH - 2);
+
+        // Sunlit stone edge highlight (top & left bevel highlight)
+        ctx.strokeStyle = 'rgba(255, 230, 190, 0.22)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + 2, y + rowH - 2);
+        ctx.lineTo(x + 2, y + 2);
+        ctx.lineTo(x + colW - 2, y + 2);
+        ctx.stroke();
+      }
+    }
+
+    // Micro mineral grain
+    const imgData = ctx.getImageData(0, 0, 512, 512);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 22;
+      data[i] = Math.min(255, Math.max(0, data[i] + noise));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise * 0.8));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise * 0.6));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2, 2);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Tangent-space Normal Map for Ashlar Stone
+   */
+  public static getAshlarNormal(): THREE.CanvasTexture {
+    const key = 'ashlar_normal';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    // Build heightmap canvas for normal derivation
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Base block height (mid gray = 128)
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 512, 512);
+
+    const rows = 8;
+    const rowH = 512 / rows;
+    for (let r = 0; r < rows; r++) {
+      const y = r * rowH;
+      const isShifted = r % 2 === 1;
+      const cols = 4;
+      const colW = 512 / cols;
+      const offsetX = isShifted ? colW / 2 : 0;
+
+      for (let c = -1; c <= cols; c++) {
+        const x = c * colW + offsetX;
+        if (x + colW < 0 || x > 512) continue;
+
+        // Block pillowing / beveled convex surface
+        const pillowGrad = ctx.createRadialGradient(
+          x + colW / 2,
+          y + rowH / 2,
+          5,
+          x + colW / 2,
+          y + rowH / 2,
+          colW * 0.55
+        );
+        pillowGrad.addColorStop(0, '#9e9e9e'); // Higher in center
+        pillowGrad.addColorStop(0.7, '#888888');
+        pillowGrad.addColorStop(1, '#555555'); // Deep in seams
+        ctx.fillStyle = pillowGrad;
+        ctx.fillRect(x + 2, y + 2, colW - 4, rowH - 4);
+
+        // Deep recessed mortar grooves
+        ctx.strokeStyle = '#222222';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, y, colW, rowH);
+      }
+    }
+
+    const texture = this.generateNormalMap(canvas, 3.2);
+    texture.repeat.set(2, 2);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Weathered Himalayan Flagstone Paving for Temple Courtyard Walkway
+   * Natural slate and sandstone slabs with rounded eroded edges and mossy mortar
+   */
+  public static getAncientFlagstone(): THREE.CanvasTexture {
+    const key = 'ancient_flagstone';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Earthy mortar bedrock base
+    ctx.fillStyle = '#3a3229';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Irregular paving stones grid
+    const cols = 5;
+    const rows = 5;
+    const cw = 512 / cols;
+    const ch = 512 / rows;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const px = c * cw + 4;
+        const py = r * ch + 4;
+        const pw = cw - 8;
+        const ph = ch - 8;
+
+        // Slight geological tone variation per stone slab
+        const hash = (Math.sin(r * 4.1 + c * 7.9) * 0.5 + 0.5);
+        const stoneGrad = ctx.createLinearGradient(px, py, px + pw, py + ph);
+        if (hash > 0.6) {
+          stoneGrad.addColorStop(0, '#8c6e58'); // Warm golden sandstone
+          stoneGrad.addColorStop(1, '#70533e');
+        } else if (hash > 0.3) {
+          stoneGrad.addColorStop(0, '#7a6858'); // Weathered Himalayan slate
+          stoneGrad.addColorStop(1, '#5e5043');
+        } else {
+          stoneGrad.addColorStop(0, '#94755c'); // Ochre sandstone
+          stoneGrad.addColorStop(1, '#7a5a41');
+        }
+
+        ctx.fillStyle = stoneGrad;
+        // Rounded weathered stone corners
+        ctx.beginPath();
+        const rad = 6;
+        ctx.roundRect(px, py, pw, ph, [rad, rad, rad, rad]);
+        ctx.fill();
+
+        // Stone texture striations & chisel clefts
+        ctx.strokeStyle = 'rgba(40, 25, 15, 0.12)';
+        ctx.lineWidth = 1.8;
+        for (let s = 8; s < ph - 6; s += 6) {
+          ctx.beginPath();
+          ctx.moveTo(px + 6, py + s);
+          ctx.lineTo(px + pw - 6, py + s + (Math.random() - 0.5) * 3);
+          ctx.stroke();
+        }
+
+        // Sunlit edge bevel
+        ctx.strokeStyle = 'rgba(240, 220, 190, 0.28)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px + 4, py + ph - 4);
+        ctx.lineTo(px + 4, py + 4);
+        ctx.lineTo(px + pw - 4, py + 4);
+        ctx.stroke();
+
+        // Corner moss patches in joint
+        if (hash > 0.5) {
+          ctx.fillStyle = 'rgba(40, 95, 45, 0.4)';
+          ctx.beginPath();
+          ctx.arc(px + 4, py + 4, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // Granite surface speckling
+    const imgData = ctx.getImageData(0, 0, 512, 512);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const n = (Math.random() - 0.5) * 26;
+      data[i] = Math.min(255, Math.max(0, data[i] + n));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n * 0.9));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n * 0.7));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(3, 6);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Normal map for Ancient Flagstone Paving
+   */
+  public static getFlagstoneNormal(): THREE.CanvasTexture {
+    const key = 'flagstone_normal';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Deep mortar joints (dark height)
+    ctx.fillStyle = '#222222';
+    ctx.fillRect(0, 0, 512, 512);
+
+    const cols = 5;
+    const rows = 5;
+    const cw = 512 / cols;
+    const ch = 512 / rows;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const px = c * cw + 4;
+        const py = r * ch + 4;
+        const pw = cw - 8;
+        const ph = ch - 8;
+
+        const pGrad = ctx.createRadialGradient(
+          px + pw / 2,
+          py + ph / 2,
+          4,
+          px + pw / 2,
+          py + ph / 2,
+          pw * 0.55
+        );
+        pGrad.addColorStop(0, '#a8a8a8');
+        pGrad.addColorStop(0.8, '#888888');
+        pGrad.addColorStop(1, '#444444');
+        ctx.fillStyle = pGrad;
+
+        ctx.beginPath();
+        ctx.roundRect(px, py, pw, ph, [6, 6, 6, 6]);
+        ctx.fill();
+      }
+    }
+
+    const texture = this.generateNormalMap(canvas, 3.0);
+    texture.repeat.set(3, 6);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Realistic Himalayan Deodar Cedar Bark (Deeply furrowed charcoal-brown with lichen)
+   */
+  public static getDeodarBarkTexture(): THREE.CanvasTexture {
+    const key = 'deodar_bark';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Dark charcoal-brown wood core
+    const bgGrad = ctx.createLinearGradient(0, 0, 256, 0);
+    bgGrad.addColorStop(0, '#2b1e16');
+    bgGrad.addColorStop(0.5, '#3b291d');
+    bgGrad.addColorStop(1, '#241812');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 256, 512);
+
+    // Deep vertical bark furrows
+    for (let x = 6; x < 256; x += 12) {
+      ctx.strokeStyle = 'rgba(15, 9, 6, 0.65)';
+      ctx.lineWidth = 3 + Math.random() * 2;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      let cx = x;
+      for (let y = 0; y < 512; y += 30) {
+        cx += (Math.random() - 0.5) * 8;
+        ctx.lineTo(cx, y);
+      }
+      ctx.stroke();
+
+      // Ridge highlight adjacent to furrow
+      ctx.strokeStyle = 'rgba(115, 85, 62, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 3, 0);
+      let hx = x + 3;
+      for (let y = 0; y < 512; y += 30) {
+        hx += (Math.random() - 0.5) * 8;
+        ctx.lineTo(hx, y);
+      }
+      ctx.stroke();
+    }
+
+    // Alpine sage-green lichen colonies on bark
+    ctx.fillStyle = 'rgba(110, 140, 115, 0.35)';
+    for (let i = 0; i < 40; i++) {
+      const lx = Math.random() * 256;
+      const ly = Math.random() * 512;
+      const lr = 4 + Math.random() * 10;
+      ctx.beginPath();
+      ctx.ellipse(lx, ly, lr * 0.6, lr, Math.random() * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(2, 4);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Tangent-space Normal Map for Deodar Bark
+   */
+  public static getDeodarBarkNormal(): THREE.CanvasTexture {
+    const key = 'deodar_bark_normal';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 256, 512);
+
+    for (let x = 6; x < 256; x += 12) {
+      // Deep valley furrow
+      ctx.strokeStyle = '#252525';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      let cx = x;
+      for (let y = 0; y < 512; y += 30) {
+        cx += (Math.random() - 0.5) * 8;
+        ctx.lineTo(cx, y);
+      }
+      ctx.stroke();
+
+      // High ridge
+      ctx.strokeStyle = '#d5d5d5';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + 5, 0);
+      let hx = x + 5;
+      for (let y = 0; y < 512; y += 30) {
+        hx += (Math.random() - 0.5) * 8;
+        ctx.lineTo(hx, y);
+      }
+      ctx.stroke();
+    }
+
+    const texture = this.generateNormalMap(canvas, 3.5);
+    texture.repeat.set(2, 4);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Tiered Deodar Cedar Needle Foliage Texture with rich organic depth
+   */
+  public static getDeodarFoliageTexture(): THREE.CanvasTexture {
+    const key = 'deodar_foliage';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Rich forest conifer base
+    const grad = ctx.createRadialGradient(256, 256, 30, 256, 256, 256);
+    grad.addColorStop(0, '#1c4228'); // Deep core evergreen
+    grad.addColorStop(0.6, '#183b23');
+    grad.addColorStop(1, '#0e2416');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Layered needle clusters (spreading horizontally)
+    for (let i = 0; i < 2800; i++) {
+      const nx = Math.random() * 512;
+      const ny = Math.random() * 512;
+      const angle = (Math.random() - 0.5) * 1.4;
+      const len = 6 + Math.random() * 12;
+
+      const r = Math.random();
+      if (r > 0.7) {
+        ctx.strokeStyle = '#2e7845'; // Sun-dappled needle tip
+      } else if (r > 0.3) {
+        ctx.strokeStyle = '#225d36'; // Rich cedar green
+      } else {
+        ctx.strokeStyle = '#143820'; // Deep shade
+      }
+      ctx.lineWidth = 1.2 + Math.random() * 1.2;
+
+      ctx.beginPath();
+      ctx.moveTo(nx, ny);
+      ctx.lineTo(nx + Math.cos(angle) * len, ny + Math.sin(angle) * len);
+      ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * High-detail 3D Alpine Grass Blade Quad Texture with alpha cutout
+   */
+  public static getGrassTuftTexture(): THREE.CanvasTexture {
+    const key = 'grass_tuft_quad';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    // Transparent background
+    ctx.clearRect(0, 0, 512, 512);
+
+    // Paint natural, organically curved alpine grass blades from base (y=512) reaching upward
+    const bladeCount = 95;
+    for (let b = 0; b < bladeCount; b++) {
+      const baseX = 256 + (Math.random() - 0.5) * 220;
+      const spread = (Math.random() - 0.5) * 180;
+      const tipX = baseX + spread;
+      const tipY = 30 + Math.random() * 210;
+      const cpX = (baseX + tipX) / 2 + (Math.random() - 0.5) * 90;
+      const cpY = 320 + Math.random() * 80;
+
+      const bladeW = 5.0 + Math.random() * 4.0;
+
+      // Base to tip color gradient
+      const bladeGrad = ctx.createLinearGradient(baseX, 512, tipX, tipY);
+      bladeGrad.addColorStop(0, '#14532d'); // Deep mountain grass root
+      bladeGrad.addColorStop(0.35, '#15803d'); // Rich emerald blade
+      bladeGrad.addColorStop(0.75, '#22c55e'); // Vibrant sunlit green
+      bladeGrad.addColorStop(1, '#a7f3d0'); // Translucent sunlit tip
+      ctx.fillStyle = bladeGrad;
+
+      ctx.beginPath();
+      ctx.moveTo(baseX - bladeW / 2, 512);
+      ctx.quadraticCurveTo(cpX - bladeW * 0.35, cpY, tipX, tipY);
+      ctx.quadraticCurveTo(cpX + bladeW * 0.35, cpY, baseX + bladeW / 2, 512);
+      ctx.closePath();
+      ctx.fill();
+
+      // Blade midrib highlight
+      if (Math.random() > 0.4) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(baseX, 480);
+        ctx.quadraticCurveTo(cpX, cpY, tipX, tipY);
+        ctx.stroke();
+      }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Photorealistic Himalayan Mountain Juniper Bush Texture (Flower-free, authentic evergreen foliage)
+   * Dense, layered conifer needle boughs with subtle frosty juniper berries and natural forest green tones
+   */
+  public static getRealisticMountainJuniperBushTexture(): THREE.CanvasTexture {
+    const key = 'realistic_mountain_juniper_bush';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.clearRect(0, 0, 512, 512);
+
+    // 1. Structural woody twigs inside the bush core
+    ctx.strokeStyle = '#2d241e';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(256, 490);
+    ctx.lineTo(256, 330);
+    ctx.lineTo(190, 230);
+    ctx.moveTo(256, 330);
+    ctx.lineTo(320, 220);
+    ctx.moveTo(256, 350);
+    ctx.lineTo(256, 190);
+    ctx.stroke();
+
+    // 2. Volumetric juniper needle clusters (24 radiating fan nodes)
+    const juniperNodes = [
+      { nx: 256, ny: 160, count: 18, scale: 1.1 },
+      { nx: 200, ny: 210, count: 16, scale: 1.05 },
+      { nx: 310, ny: 200, count: 16, scale: 1.05 },
+      { nx: 150, ny: 270, count: 15, scale: 0.95 },
+      { nx: 360, ny: 260, count: 15, scale: 0.95 },
+      { nx: 256, ny: 260, count: 18, scale: 1.1 },
+      { nx: 190, ny: 330, count: 14, scale: 0.9 },
+      { nx: 320, ny: 320, count: 14, scale: 0.9 },
+      { nx: 256, ny: 350, count: 16, scale: 1.0 },
+      { nx: 120, ny: 320, count: 12, scale: 0.8 },
+      { nx: 390, ny: 310, count: 12, scale: 0.8 },
+    ];
+
+    juniperNodes.forEach((node) => {
+      for (let s = 0; s < node.count; s++) {
+        const angle = (s / node.count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        const sprayLen = (42 + Math.random() * 26) * node.scale;
+
+        ctx.save();
+        ctx.translate(node.nx, node.ny);
+        ctx.rotate(angle);
+
+        // Multiple dense needle tiers along spray
+        for (let t = 0.2; t <= 1.0; t += 0.2) {
+          const tx = sprayLen * t;
+          const needleSpread = 12 + Math.random() * 10;
+
+          for (let n = -2; n <= 2; n++) {
+            const na = (n * 0.24) + (Math.random() - 0.5) * 0.15;
+            const nLen = (14 + Math.random() * 12) * node.scale;
+
+            const nGrad = ctx.createLinearGradient(tx, 0, tx + Math.cos(na) * nLen, Math.sin(na) * needleSpread);
+            nGrad.addColorStop(0, '#143820'); // Deep forest base
+            nGrad.addColorStop(0.5, '#166534'); // Rich emerald
+            nGrad.addColorStop(1, Math.random() > 0.4 ? '#22c55e' : '#84cc16'); // Sunlit tip
+            ctx.strokeStyle = nGrad;
+            ctx.lineWidth = 1.8 + Math.random() * 1.2;
+
+            ctx.beginPath();
+            ctx.moveTo(tx, 0);
+            ctx.lineTo(tx + Math.cos(na) * nLen, Math.sin(na) * needleSpread);
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      }
+    });
+
+    // 3. Authentically scattered wild Himalayan juniper berries (dark slate-blue with subtle frost bloom)
+    for (let b = 0; b < 28; b++) {
+      const bx = 160 + Math.random() * 192;
+      const by = 180 + Math.random() * 170;
+      const bRad = 3.5 + Math.random() * 2.5;
+
+      ctx.fillStyle = '#0f172a'; // Deep slate
+      ctx.beginPath();
+      ctx.arc(bx, by, bRad, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Frosted wax bloom highlight
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+      ctx.beginPath();
+      ctx.arc(bx - bRad * 0.3, by - bRad * 0.3, bRad * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Photorealistic Himalayan Mountain Scrub / Wild Alpine Foliage Bush Texture (Flower-free)
+   * Dense, lush multi-layered mountain leaves with authentic pale midribs and forest greens
+   */
+  public static getRealisticMountainFoliageBushTexture(): THREE.CanvasTexture {
+    const key = 'realistic_mountain_foliage_bush';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.clearRect(0, 0, 512, 512);
+
+    // 1. Central woody branching stem
+    ctx.strokeStyle = '#2d251d';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(256, 490);
+    ctx.lineTo(256, 320);
+    ctx.lineTo(180, 220);
+    ctx.moveTo(256, 320);
+    ctx.lineTo(330, 210);
+    ctx.moveTo(256, 340);
+    ctx.lineTo(256, 175);
+    ctx.stroke();
+
+    // 2. Multi-tiered wild alpine broadleaf scrub rosettes (Pure natural greenery, NO flowers)
+    const foliageNodes = [
+      { cx: 256, cy: 150, count: 12, scale: 1.1 },
+      { cx: 180, cy: 200, count: 11, scale: 1.05 },
+      { cx: 330, cy: 190, count: 11, scale: 1.05 },
+      { cx: 140, cy: 270, count: 10, scale: 0.95 },
+      { cx: 370, cy: 260, count: 10, scale: 0.95 },
+      { cx: 256, cy: 250, count: 14, scale: 1.1 },
+      { cx: 190, cy: 320, count: 10, scale: 0.9 },
+      { cx: 320, cy: 310, count: 10, scale: 0.9 },
+      { cx: 256, cy: 340, count: 12, scale: 0.95 },
+    ];
+
+    foliageNodes.forEach((node) => {
+      for (let l = 0; l < node.count; l++) {
+        const angle = (l / node.count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        const leafLen = (46 + Math.random() * 20) * node.scale;
+        const leafW = (18 + Math.random() * 8) * node.scale;
+
+        ctx.save();
+        ctx.translate(node.cx, node.cy);
+        ctx.rotate(angle);
+
+        // Leaf color gradient: deep forest shadow base to sunlit waxy emerald edge
+        const lGrad = ctx.createLinearGradient(0, 0, leafLen, 0);
+        lGrad.addColorStop(0, '#0f291e'); // Deep shadow leaf base
+        lGrad.addColorStop(0.35, '#14532d'); // Mountain conifer green
+        lGrad.addColorStop(0.75, '#16a34a'); // Vibrant leaf body
+        lGrad.addColorStop(1, '#22c55e'); // Fresh natural tip
+        ctx.fillStyle = lGrad;
+
+        // Natural leaf geometry
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(leafLen * 0.35, -leafW * 0.65, leafLen * 0.75, -leafW * 0.55, leafLen, 0);
+        ctx.bezierCurveTo(leafLen * 0.75, leafW * 0.55, leafLen * 0.35, leafW * 0.65, 0, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        // Pale green central midrib vein
+        ctx.strokeStyle = '#86efac';
+        ctx.lineWidth = 1.6 * node.scale;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(leafLen * 0.95, 0);
+        ctx.stroke();
+
+        // Secondary lateral veins
+        ctx.strokeStyle = 'rgba(134, 239, 172, 0.45)';
+        ctx.lineWidth = 0.9;
+        for (let v = 10; v < leafLen - 6; v += 8) {
+          ctx.beginPath();
+          ctx.moveTo(v, 0);
+          ctx.lineTo(v + 5, -leafW * 0.35);
+          ctx.moveTo(v, 0);
+          ctx.lineTo(v + 5, leafW * 0.35);
+          ctx.stroke();
+        }
+
+        // Sunlight reflection on leaf surface
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.beginPath();
+        ctx.ellipse(leafLen * 0.45, -leafW * 0.2, leafLen * 0.24, leafW * 0.14, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Alias methods returning the flower-free mountain evergreen foliage textures
+   */
+  public static getRealisticRhododendronBushTexture(): THREE.CanvasTexture {
+    return this.getRealisticMountainJuniperBushTexture();
+  }
+
+  public static getRealisticMarigoldBushTexture(): THREE.CanvasTexture {
+    return this.getRealisticMountainFoliageBushTexture();
+  }
+
+  /**
+   * Ultra-realistic Broadleaf Foliage Clump Texture (Inspired by sacred Banyan / Peepal canopy)
+   * High-detail alpha card featuring 160+ individual veined leaves with organic clusters & negative space.
+   * Completely self-contained within foliage boundary with NO protruding or hanging bare lines!
+   */
+  public static getRealisticLeafClumpTexture(): THREE.CanvasTexture {
+    const key = 'realistic_leaf_clump';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.clearRect(0, 0, 512, 512);
+
+    // 1. Internal woody twigs (strictly confined to center of foliage mass, fully enveloped by leaves)
+    ctx.strokeStyle = '#4a3525';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    const drawInternalTwig = (x1: number, y1: number, x2: number, y2: number, w: number) => {
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      const cx = (x1 + x2) / 2 + (Math.random() - 0.5) * 12;
+      const cy = (y1 + y2) / 2 + (Math.random() - 0.5) * 12;
+      ctx.quadraticCurveTo(cx, cy, x2, y2);
+      ctx.stroke();
+    };
+
+    // Internal twigs only - never extending towards canvas boundary
+    drawInternalTwig(256, 310, 256, 240, 5);
+    drawInternalTwig(256, 260, 190, 200, 3.5);
+    drawInternalTwig(256, 260, 320, 190, 3.5);
+    drawInternalTwig(256, 240, 256, 170, 3);
+    drawInternalTwig(190, 200, 150, 170, 2.5);
+    drawInternalTwig(320, 190, 360, 160, 2.5);
+
+    // 2. Individual realistic leaves radiating outward to form a lush, dense canopy cluster
+    const leafNodes: Array<{ x: number; y: number; baseAngle: number; scale: number }> = [];
+
+    // Dense organic clusters centered around (256, 256)
+    const clusterCenters = [
+      { x: 256, y: 256, r: 70, count: 40 }, // Core center density
+      { x: 256, y: 170, r: 75, count: 32 }, // Top
+      { x: 170, y: 210, r: 75, count: 32 }, // Top-left
+      { x: 340, y: 200, r: 75, count: 32 }, // Top-right
+      { x: 180, y: 290, r: 70, count: 28 }, // Bottom-left
+      { x: 330, y: 290, r: 70, count: 28 }, // Bottom-right
+      { x: 256, y: 330, r: 65, count: 26 }, // Bottom
+      { x: 120, y: 240, r: 50, count: 18 }, // Far left
+      { x: 390, y: 240, r: 50, count: 18 }, // Far right
+    ];
+
+    clusterCenters.forEach((cc) => {
+      for (let i = 0; i < cc.count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = Math.pow(Math.random(), 0.7) * cc.r;
+        leafNodes.push({
+          x: cc.x + Math.cos(ang) * dist,
+          y: cc.y + Math.sin(ang) * dist,
+          baseAngle: ang + (Math.random() - 0.5) * 0.9,
+          scale: 0.75 + Math.random() * 0.55,
+        });
+      }
+    });
+
+    // Draw each leaf
+    leafNodes.forEach((node) => {
+      ctx.save();
+      ctx.translate(node.x, node.y);
+      ctx.rotate(node.baseAngle);
+
+      const len = 34 * node.scale;
+      const w = 21 * node.scale;
+
+      // Leaf blade gradient (subtle sunlight variation across leaves)
+      const rVal = Math.random();
+      const grad = ctx.createLinearGradient(0, 0, 0, -len);
+
+      if (rVal < 0.35) {
+        // Vibrant sunlit spring leaf (lime & emerald)
+        grad.addColorStop(0, '#15803d');
+        grad.addColorStop(0.5, '#22c55e');
+        grad.addColorStop(1, '#84cc16');
+      } else if (rVal < 0.7) {
+        // Deep mature canopy green
+        grad.addColorStop(0, '#14532d');
+        grad.addColorStop(0.5, '#166534');
+        grad.addColorStop(1, '#4ade80');
+      } else if (rVal < 0.9) {
+        // Sun-drenched golden olive tip
+        grad.addColorStop(0, '#166534');
+        grad.addColorStop(0.5, '#4d7c0f');
+        grad.addColorStop(1, '#a3e635');
+      } else {
+        // Deep shadow underleaf
+        grad.addColorStop(0, '#0f3d1e');
+        grad.addColorStop(0.6, '#15803d');
+        grad.addColorStop(1, '#22c55e');
+      }
+
+      ctx.fillStyle = grad;
+
+      // Realistic pointed ovate leaf silhouette with delicate curve
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(w * 0.75, -len * 0.32, w * 0.65, -len * 0.82, 0, -len);
+      ctx.bezierCurveTo(-w * 0.65, -len * 0.82, -w * 0.75, -len * 0.32, 0, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Translucent sun-reflecting rim & edge highlight
+      ctx.strokeStyle = 'rgba(187, 247, 208, 0.35)';
+      ctx.lineWidth = 0.9;
+      ctx.stroke();
+
+      // Leaf central midrib stem
+      ctx.strokeStyle = 'rgba(220, 252, 231, 0.5)';
+      ctx.lineWidth = 1.3 * node.scale;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo((Math.random() - 0.5) * 3, -len * 0.5, 0, -len * 0.92);
+      ctx.stroke();
+
+      // Subtle lateral herringbone veins
+      ctx.strokeStyle = 'rgba(220, 252, 231, 0.2)';
+      ctx.lineWidth = 0.75 * node.scale;
+      for (let v = 0.25; v <= 0.8; v += 0.22) {
+        const vy = -len * v;
+        const vw = w * 0.32 * (1 - v * 0.6);
+        ctx.beginPath();
+        ctx.moveTo(0, vy);
+        ctx.lineTo(vw, vy - 4 * node.scale);
+        ctx.moveTo(0, vy);
+        ctx.lineTo(-vw, vy - 4 * node.scale);
+        ctx.stroke();
+      }
+
+      // Specular leaf sheen highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.beginPath();
+      ctx.ellipse(w * 0.18, -len * 0.45, w * 0.2, len * 0.26, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    this.cache.set(key, texture);
+    return texture;
+  }
+
+  /**
+   * Ultra-realistic Himalayan Conifer / Cedar Leaf Sprig Card (Screenshot 2 style)
+   * Dense horizontal sprays of needle foliage with soft internal twigs and zero protruding naked lines!
+   */
+  public static getRealisticPineLeafClumpTexture(): THREE.CanvasTexture {
+    const key = 'realistic_pine_clump';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d')!;
+
+    ctx.clearRect(0, 0, 512, 512);
+
+    // 1. Internal central twig branch (strictly within needle bounds)
+    ctx.strokeStyle = '#4a3525';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(256, 370);
+    ctx.quadraticCurveTo(258, 256, 256, 140);
+    ctx.stroke();
+
+    // Short lateral twigs inside needle zone
+    for (let t = 190; t <= 330; t += 35) {
+      const dir = (t / 35) % 2 === 0 ? 1 : -1;
+      const endX = 256 + dir * (70 + Math.random() * 40);
+      const endY = t - 15;
+
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(256, t);
+      ctx.quadraticCurveTo(256 + dir * 25, t - 5, endX, endY);
+      ctx.stroke();
+    }
+
+    // 2. Dense fan-shaped sprays of cedar/conifer needles radiating outward and covering the stems
+    for (let i = 0; i < 950; i++) {
+      const sprayCenterX = 256 + (Math.random() - 0.5) * 320;
+      const sprayCenterY = 130 + Math.random() * 260;
+      const sprayAngle = Math.atan2(sprayCenterY - 256, sprayCenterX - 256) + (Math.random() - 0.5) * 0.85;
+      const len = 14 + Math.random() * 22;
+
+      const r = Math.random();
+      if (r < 0.4) {
+        ctx.strokeStyle = '#22c55e'; // Fresh needle tip
+      } else if (r < 0.75) {
+        ctx.strokeStyle = '#15803d'; // Rich evergreen
+      } else if (r < 0.92) {
+        ctx.strokeStyle = '#14532d'; // Deep shadow
+      } else {
+        ctx.strokeStyle = '#84cc16'; // Sunlit lime highlight
+      }
+
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(sprayCenterX, sprayCenterY);
+      ctx.lineTo(
+        sprayCenterX + Math.cos(sprayAngle) * len,
+        sprayCenterY + Math.sin(sprayAngle) * len
+      );
+      ctx.stroke();
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    this.cache.set(key, texture);
+    return texture;
+  }
 }
+
+

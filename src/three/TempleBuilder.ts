@@ -23,6 +23,10 @@ export class TempleBuilder {
     // AUTHENTIC REFERENCE MATERIALS
     // Terracotta Red, Saffron Ochre, Jade Teal, Gold, Sandstone
     // ==========================================
+    const ashlarTexture = TempleTextures.getAshlarStone();
+    const ashlarNormal = TempleTextures.getAshlarNormal();
+    const flagstoneTexture = TempleTextures.getAncientFlagstone();
+    const flagstoneNormal = TempleTextures.getFlagstoneNormal();
     const sandstoneTexture = TempleTextures.getSandstone();
     const carvedFriezeTexture = TempleTextures.getCarvedFrieze();
     const sanctumFloorTexture = TempleTextures.getSanctumFloor();
@@ -31,25 +35,33 @@ export class TempleBuilder {
     const flagTexture = TempleTextures.getTempleFlag();
     const glowSprite = TempleTextures.getGlowSprite();
 
-    // 1. Terracotta Red (Plinth, steps, shikhara ridges, arch frame)
+    // 1. Terracotta Red Ashlar Stone (Plinth, steps, shikhara ridges, arch frame)
     const terracottaMat = new THREE.MeshStandardMaterial({
+      map: ashlarTexture,
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.85, 0.85),
       color: 0x992424,
-      roughness: 0.68,
+      roughness: 0.74,
       metalness: 0.04,
     });
 
-    // 2. Saffron Ochre (Walls, pillar shafts, pediment body)
+    // 2. Saffron Ochre Dressed Sandstone (Walls, pillar shafts, pediment body)
     const ochreMat = new THREE.MeshStandardMaterial({
+      map: ashlarTexture,
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.75, 0.75),
       color: 0xd97706,
-      roughness: 0.62,
+      roughness: 0.72,
       metalness: 0.05,
     });
 
-    // 3. Jade Teal / Verdigris (Pillar collars, arch molding, rosette medallion)
+    // 3. Jade Teal / Verdigris Carved Stone (Pillar collars, arch molding, rosette medallion)
     const tealMat = new THREE.MeshStandardMaterial({
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.4, 0.4),
       color: 0x0f766e,
-      roughness: 0.44,
-      metalness: 0.14,
+      roughness: 0.48,
+      metalness: 0.12,
     });
 
     // 4. Gold (Kalashas, jewelry, gold mace/gada, halo)
@@ -62,14 +74,27 @@ export class TempleBuilder {
     // 5. Sandstone (Floors, carved brackets)
     const sandstoneMat = new THREE.MeshStandardMaterial({
       map: sandstoneTexture,
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.5, 0.5),
       roughness: 0.78,
       metalness: 0.02,
     });
 
     const carvedStoneMat = new THREE.MeshStandardMaterial({
       map: carvedFriezeTexture,
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.65, 0.65),
       roughness: 0.72,
       metalness: 0.05,
+    });
+
+    // Dedicated Ancient Courtyard Flagstone Paving
+    const flagstoneMat = new THREE.MeshStandardMaterial({
+      map: flagstoneTexture,
+      normalMap: flagstoneNormal,
+      normalScale: new THREE.Vector2(1.15, 1.15),
+      roughness: 0.82,
+      metalness: 0.02,
     });
 
     // 6. Sanctum Floor (Dark polished granite)
@@ -105,7 +130,7 @@ export class TempleBuilder {
     // ==========================================
     // Paved ceremonial flagstone walkway (x: -2.5 to 2.5, z: 5.5 to 15.0)
     const walkwayGeo = new THREE.BoxGeometry(4.8, 0.12, 10.0);
-    const walkway = new THREE.Mesh(walkwayGeo, carvedStoneMat);
+    const walkway = new THREE.Mesh(walkwayGeo, flagstoneMat);
     walkway.position.set(0, 0.06, 10.5);
     walkway.receiveShadow = true;
     group.add(walkway);
