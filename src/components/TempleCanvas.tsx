@@ -10,6 +10,7 @@ interface TempleCanvasProps {
   onTimeChange?: (newTime: number) => void;
   isSitting: boolean;
   onToggleSitting: () => void;
+  joystickVectorRef?: React.RefObject<{ x: number; y: number }>;
 }
 
 export const TempleCanvas: React.FC<TempleCanvasProps> = ({
@@ -18,6 +19,7 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
   onTimeChange,
   isSitting,
   onToggleSitting,
+  joystickVectorRef,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +59,7 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
   }, [isAutoDayCycle]);
 
   // Player state: Starts on the ceremonial approach path facing the temple
-  const playerPos = useRef(new THREE.Vector3(0, 1.65, 11.5));
+  const playerPos = useRef(new THREE.Vector3(0, 1.65, 13.5));
   const playerYaw = useRef(0);
   const playerPitch = useRef(0.04);
   const keysPressed = useRef<{ [key: string]: boolean }>({});
@@ -76,6 +78,11 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
     onToggleSittingRef.current = onToggleSitting;
   }, [onToggleSitting]);
 
+  const joystickRef = useRef(joystickVectorRef);
+  useEffect(() => {
+    joystickRef.current = joystickVectorRef;
+  }, [joystickVectorRef]);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -87,12 +94,29 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
     // Fog blending seamlessly with the mountain atmosphere
     scene.fog = new THREE.FogExp2(0xcfe2f7, 0.0035);
 
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      container.clientWidth / container.clientHeight,
-      0.1,
-      1000
-    );
+    // Calculate dynamic FOV so portrait mobile view has a wide, comfortable horizontal perspective (~72°)
+    // instead of the suffocatingly zoomed-in ~29° view caused by a fixed vertical FOV
+    const updateCameraProjection = (cam: THREE.PerspectiveCamera, w: number, h: number) => {
+      if (w <= 0 || h <= 0) return;
+      const aspect = w / h;
+      cam.aspect = aspect;
+
+      if (aspect < 1.0) {
+        // Portrait phone/tablet: calculate vertical FOV to preserve horizontal field of view
+        const targetHFOVRad = 74 * (Math.PI / 180);
+        const vFOVRad = 2 * Math.atan(Math.tan(targetHFOVRad / 2) / aspect);
+        cam.fov = Math.min(88, Math.max(60, (vFOVRad * 180) / Math.PI));
+      } else {
+        // Landscape / Desktop wide perspective
+        cam.fov = 60;
+      }
+      cam.updateProjectionMatrix();
+    };
+
+    const initialW = container.clientWidth || window.innerWidth;
+    const initialH = container.clientHeight || window.innerHeight;
+    const camera = new THREE.PerspectiveCamera(60, initialW / initialH, 0.1, 1000);
+    updateCameraProjection(camera, initialW, initialH);
     cameraRef.current = camera;
     camera.position.copy(playerPos.current);
 
@@ -191,26 +215,44 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
       isDraggingMouse.current = false;
     };
 
+    let lookTouchId: number | null = null;
+    const lastLookPos = { x: 0, y: 0 };
+
     const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      if (lookTouchId === null && e.changedTouches.length > 0) {
+        const touch = e.changedTouches[0];
+        lookTouchId = touch.identifier;
+        lastLookPos.x = touch.clientX;
+        lastLookPos.y = touch.clientY;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!touchStartPos.current || e.touches.length === 0) return;
-      const touch = e.touches[0];
-      const dx = touch.clientX - touchStartPos.current.x;
-      const dy = touch.clientY - touchStartPos.current.y;
-      touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+      if (lookTouchId === null) return;
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        if (touch.identifier === lookTouchId) {
+          const dx = touch.clientX - lastLookPos.x;
+          const dy = touch.clientY - lastLookPos.y;
+          lastLookPos.x = touch.clientX;
+          lastLookPos.y = touch.clientY;
 
-      playerYaw.current -= dx * 0.005;
-      playerPitch.current -= dy * 0.005;
-      playerPitch.current = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch.current));
+          playerYaw.current -= dx * 0.004;
+          playerPitch.current -= dy * 0.004;
+          playerPitch.current = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch.current));
+          break;
+        }
+      }
     };
 
-    const handleTouchEnd = () => {
-      touchStartPos.current = null;
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (lookTouchId === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === lookTouchId) {
+          lookTouchId = null;
+          break;
+        }
+      }
     };
 
     canvasEl.addEventListener('mousedown', handleMouseDown);
@@ -220,17 +262,22 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
     canvasEl.addEventListener('touchmove', handleTouchMove);
     canvasEl.addEventListener('touchend', handleTouchEnd);
 
-    // Responsive Canvas Resize
+    // Responsive Canvas Resize & Orientation Observer
     const handleResize = () => {
       if (!container) return;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
+      const width = container.clientWidth || window.innerWidth;
+      const height = container.clientHeight || window.innerHeight;
+      updateCameraProjection(camera, width, height);
       renderer.setSize(width, height);
     };
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
 
     // 8. Render & Physics Loop
     let animationFrameId: number;
@@ -297,10 +344,20 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
       if (keys['a'] || keys['arrowleft']) moveDir.x -= 1;
       if (keys['d'] || keys['arrowright']) moveDir.x += 1;
 
-      if (moveDir.lengthSq() > 0) {
+      // Virtual joystick vector from mobile/tablet touch
+      const joy = joystickRef.current?.current;
+      if (joy && (joy.x !== 0 || joy.y !== 0)) {
+        moveDir.x += joy.x;
+        moveDir.z += joy.y;
+      }
+
+      const inputLen = moveDir.length();
+      if (inputLen > 0.005) {
+        const speedScale = Math.min(1.0, inputLen);
         moveDir.normalize();
-        // Shift makes player sit down (slower peaceful movement while seated)
-        const moveSpeed = (isSitting ? 0.9 : 2.8) * delta;
+        // Slower peaceful movement while seated in prayer
+        const baseSpeed = isSitting ? 0.9 : 2.8;
+        const moveSpeed = baseSpeed * speedScale * delta;
 
         const sinY = Math.sin(playerYaw.current);
         const cosY = Math.cos(playerYaw.current);
@@ -376,6 +433,8 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
       canvasEl.removeEventListener('touchmove', handleTouchMove);
       canvasEl.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      resizeObserver.disconnect();
 
       particleSystem.dispose();
       renderer.dispose();
