@@ -20,12 +20,10 @@ export class HanumanSculptor {
     const reliefTex = TempleTextures.getCarvedMarbleRelief();
     const goldTex = TempleTextures.getAntiqueBrass();
 
-    // High-resolution photorealistic marble stela texture
-    const textureLoader = new THREE.TextureLoader();
-    const stelaTexture = textureLoader.load(`${import.meta.env.BASE_URL}textures/hanuman_marble_stela.jpg`);
-    stelaTexture.colorSpace = THREE.SRGBColorSpace;
+    // Consecrated Sacred Saffron / Sindoor Vigraha Texture with Gold Mukut & Gada
+    const sindoorTexture = TempleTextures.getSacredSindoorMurtiTexture();
 
-    // Polished white Makrana marble material
+    // Polished white Makrana marble material for temple plinth
     const marbleMat = new THREE.MeshStandardMaterial({
       map: marbleTex,
       color: 0xf6f1ea,
@@ -45,18 +43,18 @@ export class HanumanSculptor {
       bumpScale: 0.012,
     });
 
-    // Sacred gilded gold accents
+    // Gleaming 24K Temple Gold for Mukut, Gada, Halo & Ornaments
     const goldMat = new THREE.MeshStandardMaterial({
       map: goldTex,
-      color: 0xd4af37,
-      roughness: 0.35,
-      metalness: 0.82,
+      color: 0xf59e0b,
+      roughness: 0.22,
+      metalness: 0.88,
     });
 
-    // Deep Royal Maroon Velvet for high-contrast sanctum backdrop
+    // Sacred Auspicious Royal Red Velvet for high-contrast sanctum backdrop
     const velvetBackdropMat = new THREE.MeshStandardMaterial({
-      color: 0x3b0712,
-      roughness: 0.92,
+      color: 0x9e1220,
+      roughness: 0.85,
       metalness: 0.04,
     });
 
@@ -220,11 +218,9 @@ export class HanumanSculptor {
     stelaGeo.computeVertexNormals();
 
     const stelaMat = new THREE.MeshStandardMaterial({
-      map: stelaTexture,
-      roughness: 0.38,
+      map: sindoorTexture,
+      roughness: 0.65, // Soft matte sacred finish prevents specular glare and preserves deep facial expressions
       metalness: 0.04,
-      bumpMap: stelaTexture,
-      bumpScale: 0.02,
       side: THREE.FrontSide,
     });
 
@@ -240,16 +236,37 @@ export class HanumanSculptor {
     stelaBacking.position.set(0, 1.54, -0.08);
     root.add(stelaBacking);
 
-    // Divine Radiant Golden Aura Halo Backlight behind Lord Hanuman
-    // Creates a luminous sacred rim glow separating the white marble statue from the dark background
-    const auraHaloLight = new THREE.PointLight(0xffbe55, 3.5, 4.8, 1.3);
-    auraHaloLight.position.set(0, 2.1, -0.04);
-    root.add(auraHaloLight);
+    // Sacred Murti Stela Panel with clean, unhindered devotional sightline
+    // Lord Hanuman is complete in His master stela sculpture (holding Gada in left hand, Abhaya mudra in right)
+
 
     // ========================================================
-    // 5. SACRED OFFERINGS & DEVOTIONAL ILLUMINATION
-    // Marigold & rose petals at Lord Hanuman's lotus feet,
-    // plus dedicated warm sanctum lighting
+    // 6. SACRED DEVOTIONAL SANCTUM ILLUMINATION (Anti-Blowout)
+    // Soft downward-angled architectural spotlight + golden rim backlight
+    // ========================================================
+
+    // Golden Aura Halo Rim Backlight behind Lord Hanuman's head
+    // Casts a warm radiant contour silhouette separating the deity from the velvet backdrop
+    const auraHaloLight = new THREE.PointLight(0xff9200, 0.95, 5.2, 1.2);
+    auraHaloLight.position.set(0, 2.15, -0.06);
+    root.add(auraHaloLight);
+
+    // Main downward-angled devotional sanctum spotlight
+    // Soft, calibrated illumination to cast gentle micro-shadows under brow, nose and chin without washing out skin
+    const sanctumSpot = new THREE.SpotLight(0xfffaea, 0.85, 11, Math.PI / 4.2, 0.65, 1.2);
+    sanctumSpot.position.set(0, 3.4, 1.6);
+    sanctumSpot.target.position.set(0, 1.65, 0);
+    root.add(sanctumSpot);
+    root.add(sanctumSpot.target);
+
+    // Soft warm ambient fill for lotus feet and offerings
+    const plinthFillLight = new THREE.PointLight(0xffd8a8, 0.50, 4.5, 1.4);
+    plinthFillLight.position.set(0, 0.85, 1.1);
+    root.add(plinthFillLight);
+
+    // ========================================================
+    // 7. SACRED OFFERINGS & DEVOTIONAL ILLUMINATION
+    // Marigold & rose petals at Lord Hanuman's lotus feet
     // ========================================================
     const offeringsGroup = new THREE.Group();
 
@@ -308,11 +325,6 @@ export class HanumanSculptor {
     });
 
     root.add(offeringsGroup);
-
-    // Focused devotional golden spotlight illuminating the divine visage and crown
-    const divineVisageLight = new THREE.PointLight(0xfff5e6, 3.6, 7.0, 1.4);
-    divineVisageLight.position.set(0, 2.0, 1.35);
-    root.add(divineVisageLight);
 
     return root;
   }

@@ -1998,6 +1998,29 @@ export class TempleTextures {
     this.cache.set(key, texture);
     return texture;
   }
+
+  /**
+   * Sacred Murti Texture for Lord Hanuman
+   * Consecrated Swaroop: Light Tan body and face, Sacred Saffron Orange clothing,
+   * Shiny Gold Mukut (Crown) and divine Gada (Mace), against deep Royal Sanctum velvet backdrop.
+   */
+  public static getSacredSindoorMurtiTexture(): THREE.Texture {
+    const key = 'sacred_sindoor_murti';
+    if (this.cache.has(key)) return this.cache.get(key)!;
+
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(
+      `${import.meta.env.BASE_URL}textures/hanuman_sacred_murti.jpg?v=royal_red_flawless_3`
+    );
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    this.cache.set(key, texture as unknown as THREE.CanvasTexture);
+    return texture;
+  }
 }
+
 
 

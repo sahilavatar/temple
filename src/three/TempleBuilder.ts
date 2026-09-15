@@ -493,15 +493,15 @@ export class TempleBuilder {
     // ==========================================
     // 5. CAREFULLY PROPORTIONED ALTAR & NATIVELY SCULPTED LORD HANUMAN
     // Modeled with Three.js geometry matching user's 360° reference screenshots:
-    // Antique white carved marble, Abhaya mudra blessing, vertical fluted Gada,
-    // crown with 24-ray serrated solar disc halo, layered jewelry and dhoti drapery.
+    // Consecrated Saffron / Sindoor Vigraha, 24K Gold Mukut & Gada,
+    // 24-ray solar disc halo, layered ornaments, and directional sanctum lighting.
     // ==========================================
     const hanumanGroup = HanumanSculptor.buildStatue();
 
-    // DEDICATED WARM SANCTUM SPOTLIGHT ON LORD HANUMAN
-    const idolLight = new THREE.PointLight(0xfffae8, 3.4, 8.5, 1.5);
-    idolLight.position.set(0, 2.3, 1.4);
-    hanumanGroup.add(idolLight);
+    // Soft architectural ambient sanctum ceiling light (gentle ambient chamber fill)
+    const sanctumCeilingLight = new THREE.PointLight(0xfff3e0, 0.45, 9.5, 1.4);
+    sanctumCeilingLight.position.set(0, 3.4, 1.8);
+    hanumanGroup.add(sanctumCeilingLight);
 
     hanumanGroup.position.set(0, 1.48, -4.5);
     group.add(hanumanGroup);
