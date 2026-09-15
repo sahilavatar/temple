@@ -381,7 +381,7 @@ export const TempleCanvas: React.FC<TempleCanvasProps> = ({
         }
 
         const distFromCenter = Math.sqrt(nextPos.x * nextPos.x + nextPos.z * nextPos.z);
-        if (!isBlocked && distFromCenter < 21.0) {
+        if (!isBlocked && distFromCenter < 25.5) {
           playerPos.current.x = nextPos.x;
           playerPos.current.z = nextPos.z;
         }

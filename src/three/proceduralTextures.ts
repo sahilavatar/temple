@@ -518,7 +518,7 @@ export class TempleTextures {
   }
 
   /**
-   * Rugged Mountain Granite & Crag Texture for sunny peaks
+   * Rugged Himalayan Mountain Granite & Crag Bedrock Texture (Realistic, Organic, Grid-Free)
    */
   public static getMountainRock(): THREE.CanvasTexture {
     const key = 'mountain_rock';
@@ -529,56 +529,119 @@ export class TempleTextures {
     canvas.height = 1024;
     const ctx = canvas.getContext('2d')!;
 
-    // Sunlit Himalayan granite / high-altitude gneiss gradient
+    // 1. Base organic geological gradient (authentic weathered Himalayan granite & cold slate)
     const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
-    grad.addColorStop(0, '#5a524a');
-    grad.addColorStop(0.25, '#6b6155');
-    grad.addColorStop(0.55, '#484039');
-    grad.addColorStop(0.85, '#352e29');
-    grad.addColorStop(1, '#241f1c');
+    grad.addColorStop(0, '#535b64');    // Weathered high-altitude slate
+    grad.addColorStop(0.28, '#615f59'); // Cold granite
+    grad.addColorStop(0.52, '#484c52'); // Deep gneiss
+    grad.addColorStop(0.78, '#3d4046'); // Dark basaltic bedrock
+    grad.addColorStop(1.0, '#2b2e34');  // Deep shadow crevasse stone
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 1024, 1024);
 
-    // Stratified geological metamorphic bedding planes and joint fissures
-    for (let y = 0; y < 1024; y += 14) {
-      const isMajorFault = y % 56 === 0;
-      ctx.strokeStyle = isMajorFault
-        ? 'rgba(15, 12, 10, 0.45)'
-        : 'rgba(215, 205, 190, 0.14)';
-      ctx.lineWidth = isMajorFault ? 3.5 : 1.8;
+    // 2. Large organic rock slabs and mineral strata (non-periodic, multi-directional)
+    const slabCount = 28;
+    for (let s = 0; s < slabCount; s++) {
+      const cx = (s * 137.5) % 1024;
+      const cy = (s * 219.3) % 1024;
+      const radiusX = 90 + ((s * 37) % 120);
+      const radiusY = 60 + ((s * 53) % 90);
+      const angle = ((s * 47) % 180) * (Math.PI / 180);
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+
+      const isHighlight = s % 3 === 0;
+      ctx.fillStyle = isHighlight
+        ? 'rgba(180, 175, 165, 0.12)'
+        : 'rgba(25, 28, 35, 0.18)';
+
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      for (let x = 0; x < 1024; x += 32) {
-        ctx.lineTo(x, y + (Math.random() - 0.5) * (isMajorFault ? 16 : 8));
+      const points = 7;
+      for (let p = 0; p < points; p++) {
+        const theta = (p / points) * Math.PI * 2;
+        const rVar = 0.75 + (((s * 13 + p * 19) % 50) / 100);
+        const px = Math.cos(theta) * radiusX * rVar;
+        const py = Math.sin(theta) * radiusY * rVar;
+        if (p === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 3. Natural organic geological fracture fissures (random angular paths, non-parallel)
+    const fissureCount = 24;
+    for (let f = 0; f < fissureCount; f++) {
+      let x = (f * 179) % 1024;
+      let y = (f * 223) % 1024;
+      const baseAng = (((f * 67) % 360) * Math.PI) / 180;
+      const length = 120 + ((f * 43) % 240);
+      const steps = Math.floor(length / 15);
+
+      // Crevasse dark fissure shadow
+      ctx.strokeStyle = 'rgba(18, 20, 25, 0.45)';
+      ctx.lineWidth = 1.8 + (f % 3) * 0.9;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+
+      let curX = x;
+      let curY = y;
+      const pathPoints: { x: number; y: number }[] = [{ x, y }];
+
+      for (let st = 0; st < steps; st++) {
+        const jitter = (((f * 31 + st * 17) % 60) - 30) * (Math.PI / 180);
+        const stepDist = 12 + ((st * 7) % 10);
+        curX = (curX + Math.cos(baseAng + jitter) * stepDist + 1024) % 1024;
+        curY = (curY + Math.sin(baseAng + jitter) * stepDist + 1024) % 1024;
+        pathPoints.push({ x: curX, y: curY });
+        ctx.lineTo(curX, curY);
+      }
+      ctx.stroke();
+
+      // Sunlit rim highlight on fracture edge
+      ctx.strokeStyle = 'rgba(215, 210, 200, 0.18)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let pIdx = 0; pIdx < pathPoints.length; pIdx++) {
+        const pt = pathPoints[pIdx];
+        const hx = (pt.x - 1.5 + 1024) % 1024;
+        const hy = (pt.y - 1.5 + 1024) % 1024;
+        if (pIdx === 0) ctx.moveTo(hx, hy);
+        else ctx.lineTo(hx, hy);
       }
       ctx.stroke();
     }
 
-    // Vertical cleavage joints and frost-shatter couloirs
-    for (let i = 0; i < 40; i++) {
-      ctx.strokeStyle = 'rgba(25, 20, 18, 0.35)';
-      ctx.lineWidth = 2 + Math.random() * 2.5;
-      ctx.beginPath();
-      const sx = Math.random() * 1024;
-      ctx.moveTo(sx, 0);
-      let cx = sx;
-      for (let y = 0; y < 1024; y += 40) {
-        cx += (Math.random() - 0.5) * 20;
-        ctx.lineTo(cx, y);
-      }
-      ctx.stroke();
-    }
-
-    // Granite feldspar, quartz crystals, and dark biotite mica speckling
+    // 4. Fine crystalline quartz, feldspar grains, and mica mineral speckles
     const imgData = ctx.getImageData(0, 0, 1024, 1024);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
-      const n = (Math.random() - 0.5) * 48;
-      data[i] = Math.min(255, Math.max(0, data[i] + n));
-      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + n * 0.95));
-      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + n * 0.85));
+      // High-frequency tactile granite roughness
+      const noise = (Math.random() - 0.5) * 36;
+      data[i] = Math.min(255, Math.max(0, data[i] + noise));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise * 0.96));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise * 0.92));
     }
     ctx.putImageData(imgData, 0, 0);
+
+    // 5. Quartz mineral veins (delicate, organic wandering filaments)
+    ctx.strokeStyle = 'rgba(235, 230, 220, 0.15)';
+    ctx.lineWidth = 1.2;
+    for (let v = 0; v < 8; v++) {
+      let vx = (v * 280) % 1024;
+      let vy = (v * 340) % 1024;
+      ctx.beginPath();
+      ctx.moveTo(vx, vy);
+      for (let seg = 0; seg < 12; seg++) {
+        vx += (Math.random() - 0.45) * 50;
+        vy += (Math.random() - 0.45) * 50;
+        ctx.lineTo((vx + 1024) % 1024, (vy + 1024) % 1024);
+      }
+      ctx.stroke();
+    }
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.RepeatWrapping;
@@ -596,7 +659,7 @@ export class TempleTextures {
     if (this.cache.has(key)) return this.cache.get(key)!;
 
     const rockTex = this.getMountainRock();
-    const texture = this.generateNormalMap(rockTex.image as HTMLCanvasElement, 3.2);
+    const texture = this.generateNormalMap(rockTex.image as HTMLCanvasElement, 3.0);
     texture.repeat.set(4, 4);
     this.cache.set(key, texture);
     return texture;

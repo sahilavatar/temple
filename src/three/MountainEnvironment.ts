@@ -44,6 +44,9 @@ export class MountainEnvironment {
     const grassNormalTex = TempleTextures.getLushAlpineGrassNormal();
     const mountainGreenTex = TempleTextures.getMountainGreenery();
     const mountainRockNormalTex = TempleTextures.getMountainRockNormal();
+    const ashlarTexture = TempleTextures.getAshlarStone();
+    const ashlarNormal = TempleTextures.getAshlarNormal();
+    const sandstoneTexture = TempleTextures.getSandstone();
     const glowSprite = TempleTextures.getGlowSprite();
 
     // ==========================================
@@ -151,158 +154,148 @@ export class MountainEnvironment {
     createCloudTier(480, -23, Math.PI / 3);
 
     // ==========================================
-    // 5. REALISTIC HIMALAYAN MOUNTAIN RANGES
-    // Authentic slate bedrock, dark conifer belts, weathered granite crags, and glacial snow summits
+    // 5. MAJESTIC HIMALAYAN PEAK (REALISTIC LOOMING BACKGROUND MOUNTAIN)
+    // Towering sacred peak behind the temple with sharp arêtes, glacial cirques,
+    // snowfields, couloirs, and high-altitude summit mist
     // ==========================================
-    const mountainSlopeTex = TempleTextures.getMountainGreenery();
     const mountainRockTex = TempleTextures.getMountainRock();
-    const snowSummitTex = TempleTextures.getSnowCap();
+    const mountainRockClone = mountainRockTex.clone();
+    mountainRockClone.wrapS = THREE.RepeatWrapping;
+    mountainRockClone.wrapT = THREE.RepeatWrapping;
+    mountainRockClone.repeat.set(6, 3);
+    mountainRockClone.needsUpdate = true;
 
-    // Natural subalpine slate scree & deep pine slope base
-    const baseSlopeMat = new THREE.MeshStandardMaterial({
-      map: mountainSlopeTex,
-      color: 0x3d4a41, // Natural earthy slate & alpine conifer tone
-      roughness: 0.90,
-      metalness: 0.02,
-    });
+    const mountainRockNormalClone = mountainRockNormalTex.clone();
+    mountainRockNormalClone.wrapS = THREE.RepeatWrapping;
+    mountainRockNormalClone.wrapT = THREE.RepeatWrapping;
+    mountainRockNormalClone.repeat.set(6, 3);
+    mountainRockNormalClone.needsUpdate = true;
 
-    // Darker slate bedrock for shadowed mountain facets
-    const darkSlopeMat = new THREE.MeshStandardMaterial({
-      map: mountainSlopeTex,
-      color: 0x2d3732,
-      roughness: 0.92,
-      metalness: 0.02,
-    });
+    const mWidth = 440;
+    const mDepth = 220;
+    const mSegsX = 144;
+    const mSegsZ = 80;
+    const mountainGeo = new THREE.PlaneGeometry(mWidth, mDepth, mSegsX, mSegsZ);
+    mountainGeo.rotateX(-Math.PI / 2);
 
-    // Deep Himalayan pine forest foothills
-    const forestFoothillMat = new THREE.MeshStandardMaterial({
-      map: mountainSlopeTex,
-      color: 0x203024, // Muted natural conifer pine
-      roughness: 0.90,
-      metalness: 0.01,
-    });
+    const mPos = mountainGeo.attributes.position;
 
-    // Weathered high-altitude granite & metamorphic rock crags
-    const rockyRidgeMat = new THREE.MeshStandardMaterial({
-      map: mountainRockTex,
-      normalMap: mountainRockNormalTex,
-      normalScale: new THREE.Vector2(1.25, 1.25),
-      color: 0x64748b, // Cool Himalayan granite
-      roughness: 0.88,
-    });
+    for (let i = 0; i < mPos.count; i++) {
+      const lx = mPos.getX(i);
+      const lz = mPos.getZ(i);
 
-    // Pure glacial snow summit with crevasse fissures
-    const snowApexMat = new THREE.MeshStandardMaterial({
-      map: snowSummitTex,
-      color: 0xf8fafc,
-      roughness: 0.52,
-      metalness: 0.03,
-    });
+      // Central Mount Kailash / Dronagiri pyramid horn
+      const d1 = Math.hypot(lx + 8, lz + 5);
+      const ang1 = Math.atan2(lz + 5, lx + 8);
+      // Arêtes: 4 sharp radiating knife-edge ridges
+      const ridge1 = Math.pow(Math.max(0, Math.cos(ang1 - 0.45)), 3.5);
+      const ridge2 = Math.pow(Math.max(0, Math.cos(ang1 - 2.15)), 3.5);
+      const ridge3 = Math.pow(Math.max(0, Math.cos(ang1 + 1.15)), 3.2);
+      const ridge4 = Math.pow(Math.max(0, Math.cos(ang1 + 2.65)), 3.2);
+      const ridgeMult = 1.0 + (ridge1 + ridge2 + ridge3 + ridge4) * 0.55;
+      const h1 = Math.max(0, 130 - d1 * 1.32) * ridgeMult;
 
-    // Procedural arête deformation for authentic Himalayan ridge topography and glacial couloirs
-    const applyMountainArêteDeformation = (
-      geo: THREE.BufferGeometry,
-      seed: number,
-      ridgeStrength: number = 0.18
-    ) => {
-      const pos = geo.attributes.position;
-      for (let v = 0; v < pos.count; v++) {
-        const x = pos.getX(v);
-        const y = pos.getY(v);
-        const z = pos.getZ(v);
-        const r = Math.hypot(x, z);
-        if (r < 0.01) continue; // Apex point
-        const theta = Math.atan2(z, x);
+      // Western shoulder massif
+      const d2 = Math.hypot(lx + 75, lz - 15);
+      const h2 = Math.max(0, 92 - d2 * 1.35);
 
-        // Himalayan arête ridges (radiating spine ridges + secondary fissures)
-        const ridge1 = Math.cos(3 * theta + seed);
-        const ridge2 = Math.sin(5 * theta - seed * 2) * 0.35;
-        const couloir = Math.sin(theta * 7 + y * 0.08) * 0.22;
-        const displacement = 1.0 + (ridge1 + ridge2 + couloir) * ridgeStrength;
+      // Eastern ridge horn
+      const d3 = Math.hypot(lx - 70, lz - 10);
+      const h3 = Math.max(0, 86 - d3 * 1.35);
 
-        pos.setX(v, x * displacement);
-        pos.setZ(v, z * displacement);
+      // Far western buttress
+      const d4 = Math.hypot(lx + 145, lz + 10);
+      const h4 = Math.max(0, 68 - d4 * 1.25);
+
+      // Far eastern buttress
+      const d5 = Math.hypot(lx - 140, lz + 15);
+      const h5 = Math.max(0, 65 - d5 * 1.25);
+
+      let y = Math.max(h1, Math.max(h2, Math.max(h3, Math.max(h4, h5))));
+
+      // Multi-octave rock crag noise and couloirs
+      if (y > 2) {
+        const n1 = Math.sin(lx * 0.075 + lz * 0.055) * Math.cos(lx * 0.048 - lz * 0.085) * 8.5;
+        const n2 = Math.sin(lx * 0.20 - lz * 0.16) * 3.4;
+        const n3 = Math.cos(lx * 0.50 + lz * 0.38) * 1.2;
+        // Couloirs (vertical glacial erosion chutes)
+        const couloir = Math.sin(ang1 * 6 + y * 0.13) * (y > 35 ? 2.8 : 0.9);
+        y += n1 + n2 + n3 - couloir;
       }
-      pos.needsUpdate = true;
-      geo.computeVertexNormals();
-    };
 
-    // 20 Majestic Himalayan Mountains ringing the 360° horizon
-    const peakCount = 20;
-    for (let i = 0; i < peakCount; i++) {
-      const angle = (i / peakCount) * Math.PI * 2 + (i % 3) * 0.12;
-      const dist = 140 + (i % 5) * 20;
-      const px = Math.cos(angle) * dist;
-      const pz = Math.sin(angle) * dist;
-      const peakH = 75 + (i % 4) * 25 + ((i * 7) % 20);
-      const peakRadius = 44 + (i % 3) * 14;
+      // Edge taper so it fades smoothly into the valley cloud sea
+      const edgeFactorX = Math.max(0, 1.0 - Math.pow(Math.abs(lx) / (mWidth * 0.48), 3));
+      const edgeFactorZ = Math.max(0, 1.0 - Math.pow(Math.abs(lz) / (mDepth * 0.48), 3));
+      y = y * edgeFactorX * edgeFactorZ - 20;
 
-      const yBase = -25;
-      const segs = 36;
-      const heightSegs = 14;
-
-      // Realistic altitudinal distribution:
-      // Major peaks have deeper snowfields; rugged peaks have towering granite ribs
-      const isGlacierPeak = i % 3 === 0;
-      const snowRatio = isGlacierPeak ? 0.35 : 0.22;
-      const cragRatio = isGlacierPeak ? 0.28 : 0.36;
-      const baseRatio = 1.0 - snowRatio - cragRatio;
-
-      const hBase = peakH * baseRatio;
-      const rBaseTop = peakRadius * (1.0 - baseRatio * 0.72);
-
-      const hCrag = peakH * cragRatio;
-      const rCragTop = peakRadius * snowRatio * 0.85;
-
-      const hSnow = peakH * snowRatio;
-
-      // 1. Natural Mountain Base (Earthy slate scree & dark pine)
-      const baseMat = i % 2 === 0 ? baseSlopeMat : darkSlopeMat;
-      const baseGeo = new THREE.CylinderGeometry(rBaseTop, peakRadius, hBase, segs, heightSegs);
-      applyMountainArêteDeformation(baseGeo, i * 1.8, 0.15);
-      const lushBase = new THREE.Mesh(baseGeo, baseMat);
-      lushBase.position.set(px, yBase + hBase / 2, pz);
-      envGroup.add(lushBase);
-
-      // 2. Weathered Himalayan Granite Crags
-      const cragGeo = new THREE.CylinderGeometry(rCragTop, rBaseTop, hCrag, segs, heightSegs);
-      applyMountainArêteDeformation(cragGeo, i * 1.8, 0.22);
-      const cragMesh = new THREE.Mesh(cragGeo, rockyRidgeMat);
-      cragMesh.position.set(px, yBase + hBase + hCrag / 2, pz);
-      envGroup.add(cragMesh);
-
-      // 3. Snow-Capped Apex (Glacial summit)
-      const snowGeo = new THREE.ConeGeometry(rCragTop, hSnow, segs, heightSegs);
-      applyMountainArêteDeformation(snowGeo, i * 1.8, 0.25);
-      const snowCap = new THREE.Mesh(snowGeo, snowApexMat);
-      snowCap.position.set(px, yBase + hBase + hCrag + hSnow / 2, pz);
-      envGroup.add(snowCap);
+      mPos.setY(i, y);
     }
 
-    // Midground Rolling Alpine Foothills
-    const ridgeCount = 14;
-    for (let r = 0; r < ridgeCount; r++) {
-      const angle = (r / ridgeCount) * Math.PI * 2 + 0.2;
-      const dist = 72 + (r % 3) * 16;
-      const rx = Math.cos(angle) * dist;
-      const rz = Math.sin(angle) * dist;
-      const rH = 26 + (r % 4) * 8;
-      const rRad = 24 + (r % 2) * 8;
+    mPos.needsUpdate = true;
+    mountainGeo.computeVertexNormals();
 
-      const foothillGeo = new THREE.ConeGeometry(rRad, rH, 28, 8);
-      applyMountainArêteDeformation(foothillGeo, r * 2.3, 0.14);
-      const ridge = new THREE.Mesh(foothillGeo, forestFoothillMat);
-      ridge.position.set(rx, rH / 2 - 20, rz);
-      envGroup.add(ridge);
+    const mNormals = mountainGeo.attributes.normal;
+    const mColors = new Float32Array(mPos.count * 3);
+
+    for (let i = 0; i < mPos.count; i++) {
+      const y = mPos.getY(i);
+      const ny = mNormals.getY(i);
+      const nx = mNormals.getX(i);
+      const nz = mNormals.getZ(i);
+
+      // Snow accumulation based on elevation and slope
+      const snowHeightFactor = THREE.MathUtils.clamp((y - 30) / 65, 0, 1);
+      const snowSlopeFactor = THREE.MathUtils.clamp((ny - 0.22) / 0.42, 0, 1);
+      let snowCoverage = snowHeightFactor * (0.35 + 0.65 * snowSlopeFactor);
+      if (y > 95) {
+        snowCoverage = Math.max(snowCoverage, THREE.MathUtils.clamp((y - 95) / 25, 0, 1) * 0.92);
+      }
+
+      // Base rock shading (transition from dark slate scree to high granite crags)
+      const altFactor = THREE.MathUtils.clamp((y + 15) / 75, 0, 1);
+      const rockR = THREE.MathUtils.lerp(0.20, 0.42, altFactor);
+      const rockG = THREE.MathUtils.lerp(0.25, 0.45, altFactor);
+      const rockB = THREE.MathUtils.lerp(0.22, 0.52, altFactor);
+
+      // Morning Himalayan sun alpenglow catch
+      const sunCatch = Math.max(0, (nx * 0.6 + nz * 0.4) * 0.14);
+
+      // Cold blue ice shadow in crevasses
+      const iceShadow = Math.max(0, -nx * 0.08);
+
+      const finalR = THREE.MathUtils.lerp(rockR, 0.95, snowCoverage) + sunCatch;
+      const finalG = THREE.MathUtils.lerp(rockG, 0.97, snowCoverage) + sunCatch * 0.92;
+      const finalB = THREE.MathUtils.lerp(rockB, 1.00, snowCoverage) + sunCatch * 0.82 + iceShadow;
+
+      mColors[i * 3] = THREE.MathUtils.clamp(finalR, 0, 1);
+      mColors[i * 3 + 1] = THREE.MathUtils.clamp(finalG, 0, 1);
+      mColors[i * 3 + 2] = THREE.MathUtils.clamp(finalB, 0, 1);
     }
+
+    mountainGeo.setAttribute('color', new THREE.BufferAttribute(mColors, 3));
+
+    const mountainMat = new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      map: mountainRockClone,
+      normalMap: mountainRockNormalClone,
+      normalScale: new THREE.Vector2(1.15, 1.15),
+      roughness: 0.86,
+      metalness: 0.02,
+    });
+
+    const mountainMesh = new THREE.Mesh(mountainGeo, mountainMat);
+    // Positioned directly behind the temple in the distant northern horizon
+    mountainMesh.position.set(-12, -4, -195);
+    envGroup.add(mountainMesh);
 
     // ==========================================
     // 6. MOUNTAINTOP CLIFF & LUSH GREEN PLATEAU MEADOW
     // High-resolution smooth surfaces with tangent-space normal mapping
     // ==========================================
+
     // Cliff rock base: openEnded cylinder strictly BELOW the grass carpet (y < -1.0)
     const cliffBase = new THREE.Mesh(
-      new THREE.CylinderGeometry(25.4, 36.0, 16.0, 48, 4, true),
+      new THREE.CylinderGeometry(26.4, 37.0, 16.0, 48, 4, true),
       new THREE.MeshStandardMaterial({
         map: mountainRockTex,
         normalMap: mountainRockNormalTex,
@@ -316,7 +309,7 @@ export class MountainEnvironment {
 
     // LUSH GREEN ALPINE GRASS CARPET (High-resolution normal mapped meadow)
     const plateauGrass = new THREE.Mesh(
-      new THREE.CylinderGeometry(25.5, 25.5, 1.0, 64),
+      new THREE.CylinderGeometry(26.6, 26.6, 1.0, 64),
       new THREE.MeshStandardMaterial({
         map: grassTex,
         normalMap: grassNormalTex,
@@ -400,76 +393,84 @@ export class MountainEnvironment {
     ];
 
     // ==========================================
-    // 9. WEATHERED MOSS-COVERED BOULDERS
-    // Carefully positioned in natural rocky clearings with strict clearance from all trees
+    // 9. FULLY ENCLOSED DRESSED STONE TEMPLE PARAPET (Prakara Boundary)
+    // Fully enclosed seamless hand-hewn ashlar balustrade at the absolute edge of the
+    // map (radius 26.0) safely behind all trees. Zero gaps, zero low-poly spikes/triangles.
     // ==========================================
-    const boulderMat = new THREE.MeshStandardMaterial({
-      color: 0x475569,
-      roughness: 0.9,
-      flatShading: true,
+    const parapetWallMat = new THREE.MeshStandardMaterial({
+      map: ashlarTexture,
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.75, 0.75),
+      color: 0x992424, // Terracotta red ashlar stone, identical to temple plinth & curbs
+      roughness: 0.76,
+      metalness: 0.04,
     });
-    const mossMat = new THREE.MeshStandardMaterial({
-      color: 0x15803d, // Moss green cap on rocks
-      roughness: 0.85,
+
+    const parapetCopingMat = new THREE.MeshStandardMaterial({
+      map: sandstoneTexture,
+      normalMap: ashlarNormal,
+      normalScale: new THREE.Vector2(0.55, 0.55),
+      color: 0xd97706, // Warm ochre sandstone coping slab
+      roughness: 0.72,
+      metalness: 0.03,
     });
 
-    const isNearAnyTree = (bx: number, bz: number, bRadius: number): boolean => {
-      for (const t of treeSpecs) {
-        const dist = Math.hypot(bx - t.x, bz - t.z);
-        const requiredClearance = t.scale * (1.2 + t.fullness * 0.9) + bRadius + 1.2;
-        if (dist < requiredClearance) {
-          return true;
-        }
-      }
-      return false;
-    };
+    const parapetRadius = 26.0;
+    const numSegments = 48;
+    const dAngle = (Math.PI * 2) / numSegments;
+    const chordLen = 2 * parapetRadius * Math.sin(dAngle / 2);
+    const wallHeight = 0.62;
+    const wallThick = 0.42;
+    const copingHeight = 0.12;
+    const copingThick = 0.50;
+    const pierWidth = 0.52;
+    const pierHeight = 0.72;
 
-    const boulderCandidates: Array<{ angle: number; dist: number; scale: number }> = [
-      { angle: 0.35, dist: 21.0, scale: 1.9 },
-      { angle: 0.55, dist: 22.5, scale: 1.5 },
-      { angle: 0.85, dist: 21.8, scale: 2.2 },
-      { angle: 2.15, dist: 21.5, scale: 1.7 },
-      { angle: 2.45, dist: 22.0, scale: 2.1 },
-      { angle: 2.75, dist: 21.2, scale: 1.6 },
-      { angle: 3.55, dist: 22.0, scale: 2.3 },
-      { angle: 3.85, dist: 21.5, scale: 1.8 },
-      { angle: 4.15, dist: 22.2, scale: 2.0 },
-      { angle: 5.25, dist: 21.8, scale: 1.9 },
-      { angle: 5.55, dist: 22.4, scale: 2.2 },
-      { angle: 5.85, dist: 21.2, scale: 1.6 },
-    ];
+    // Shared geometries for optimal rendering performance
+    const wallSectionGeo = new THREE.BoxGeometry(wallThick, wallHeight, chordLen * 1.01);
+    const copingSectionGeo = new THREE.BoxGeometry(copingThick, copingHeight, chordLen * 1.03);
+    const pierGeo = new THREE.BoxGeometry(pierWidth, pierHeight, pierWidth);
+    const pierCapGeo = new THREE.BoxGeometry(pierWidth * 1.15, 0.08, pierWidth * 1.15);
 
-    for (let b = 0; b < boulderCandidates.length; b++) {
-      const bc = boulderCandidates[b];
-      let bx = Math.cos(bc.angle) * bc.dist;
-      let bz = Math.sin(bc.angle) * bc.dist;
-      const bScale = bc.scale;
+    for (let i = 0; i < numSegments; i++) {
+      const segAngle = i * dAngle + dAngle / 2;
+      const midX = Math.cos(segAngle) * parapetRadius;
+      const midZ = Math.sin(segAngle) * parapetRadius;
 
-      // Keep ceremonial walkway corridor clear
-      if (Math.abs(bx) < 4.0 && bz > 3.0) continue;
+      // Fully enclosed continuous wall body (no gaps)
+      const wall = new THREE.Mesh(wallSectionGeo, parapetWallMat);
+      wall.position.set(midX, wallHeight / 2, midZ);
+      wall.rotation.y = -segAngle;
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      envGroup.add(wall);
 
-      // Ensure boulder never collides with or encroaches on any tree
-      if (isNearAnyTree(bx, bz, bScale)) {
-        const nudgeDist = bc.dist + 2.5;
-        bx = Math.cos(bc.angle) * nudgeDist;
-        bz = Math.sin(bc.angle) * nudgeDist;
-        if (isNearAnyTree(bx, bz, bScale)) {
-          continue; // Skip if still too close
-        }
-      }
+      // Smooth flat beveled stone coping slab
+      const coping = new THREE.Mesh(copingSectionGeo, parapetCopingMat);
+      coping.position.set(midX, wallHeight + copingHeight / 2, midZ);
+      coping.rotation.y = -segAngle;
+      coping.castShadow = true;
+      coping.receiveShadow = true;
+      envGroup.add(coping);
 
-      const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(bScale, 1), boulderMat);
-      rock.position.set(bx, 0.4 + bScale * 0.25, bz);
-      rock.rotation.set((b * 0.5) % 3, (b * 0.8) % 3, (b * 0.2) % 3);
-      rock.castShadow = true;
-      rock.receiveShadow = true;
-      envGroup.add(rock);
+      // Node junction piers with flat-topped beveled caps
+      const jAngle = i * dAngle;
+      const jX = Math.cos(jAngle) * parapetRadius;
+      const jZ = Math.sin(jAngle) * parapetRadius;
 
-      // Velvet moss cap on top of boulder
-      const mossCap = new THREE.Mesh(new THREE.SphereGeometry(bScale * 0.65, 7, 5), mossMat);
-      mossCap.scale.set(1.0, 0.35, 1.0);
-      mossCap.position.set(bx, 0.4 + bScale * 0.85, bz);
-      envGroup.add(mossCap);
+      const pier = new THREE.Mesh(pierGeo, parapetWallMat);
+      pier.position.set(jX, pierHeight / 2, jZ);
+      pier.rotation.y = -jAngle;
+      pier.castShadow = true;
+      pier.receiveShadow = true;
+      envGroup.add(pier);
+
+      const pierCap = new THREE.Mesh(pierCapGeo, parapetCopingMat);
+      pierCap.position.set(jX, pierHeight + 0.04, jZ);
+      pierCap.rotation.y = -jAngle;
+      pierCap.castShadow = true;
+      pierCap.receiveShadow = true;
+      envGroup.add(pierCap);
     }
 
     // ==========================================
@@ -602,13 +603,13 @@ export class MountainEnvironment {
         }
       }
 
-      // 2. Primary spreading timber limbs branching out from trunk apex (Screenshot 1)
+      // 2. Primary spreading timber limbs branching out from trunk apex
       const limbCount = 6;
       const primaryLimbs: THREE.Group[] = [];
 
       for (let i = 0; i < limbCount; i++) {
         const limbAng = (i / limbCount) * Math.PI * 2 + (i % 2) * 0.3;
-        const limbLen = (2.5 + (i % 3) * 0.45 + fullness * 0.4) * scale;
+        const limbLen = (2.6 + (i % 3) * 0.45 + fullness * 0.4) * scale;
         const limbBaseR = (0.22 + fullness * 0.05) * scale;
         const limbTipR = (0.11 + fullness * 0.03) * scale;
 
@@ -627,9 +628,9 @@ export class MountainEnvironment {
         limbGroup.add(limbMesh);
 
         // Secondary fork branching upward into the canopy
-        const forkLen = (1.2 + (i % 2) * 0.25) * scale;
+        const forkLen = (1.3 + (i % 2) * 0.25) * scale;
         const forkGroup = new THREE.Group();
-        forkGroup.position.set(0, limbLen * 0.5, 0);
+        forkGroup.position.set(0, limbLen * 0.52, 0);
         forkGroup.rotation.z = 0.42; // diverging angle upward
         forkGroup.rotation.y = 0.4;
 
@@ -642,24 +643,27 @@ export class MountainEnvironment {
         forkMesh.receiveShadow = true;
         forkGroup.add(forkMesh);
 
-        // Add foliage cluster covering the secondary fork
-        addVolumetricLeafClump(forkGroup, 0, forkLen, 0, (1.25 + fullness * 0.25) * scale, leafMat);
+        // Add foliage cluster firmly anchored to the secondary fork
+        addVolumetricLeafClump(forkGroup, 0, forkLen * 0.85, 0, (1.25 + fullness * 0.25) * scale, leafMat);
         limbGroup.add(forkGroup);
 
-        // Foliage cluster along main limb
-        addVolumetricLeafClump(limbGroup, 0, limbLen * 0.6, 0, (1.25 + fullness * 0.25) * scale, leafMat);
+        // Foliage cluster along main limb (firmly enveloped around timber bough)
+        addVolumetricLeafClump(limbGroup, 0, limbLen * 0.62, 0, (1.25 + fullness * 0.25) * scale, leafMat);
         // Foliage cluster at main limb tip
-        addVolumetricLeafClump(limbGroup, 0, limbLen, 0, (1.4 + fullness * 0.3) * scale, leafMat);
+        addVolumetricLeafClump(limbGroup, 0, limbLen * 0.95, 0, (1.35 + fullness * 0.28) * scale, leafMat);
+
+        // Drooping lower outer foliage cluster directly attached to limb timber (replacing floating unanchored coordinates)
+        addVolumetricLeafClump(limbGroup, 0, limbLen * 0.78, 0.2 * scale, (1.2 + fullness * 0.22) * scale, leafMat);
 
         tree.add(limbGroup);
         primaryLimbs.push(limbGroup);
       }
 
-      // 3. Central Crown Dome Clusters (filling upper dome into a lush rounded silhouette)
+      // 3. Central Crown Dome Clusters (anchored immediately above trunk apex and bough junctions)
       const crownHeights = [
-        { y: trunkH + 1.2 * scale, r: (1.5 + fullness * 0.35) * scale, count: 4, spread: 1.2 * scale },
-        { y: trunkH + 2.2 * scale, r: (1.45 + fullness * 0.3) * scale, count: 3, spread: 0.9 * scale },
-        { y: trunkH + 3.2 * scale, r: (1.35 + fullness * 0.25) * scale, count: 1, spread: 0.0 },
+        { y: trunkH + 0.6 * scale, r: (1.45 + fullness * 0.3) * scale, count: 4, spread: 0.85 * scale },
+        { y: trunkH + 1.4 * scale, r: (1.35 + fullness * 0.25) * scale, count: 3, spread: 0.65 * scale },
+        { y: trunkH + 2.2 * scale, r: (1.25 + fullness * 0.2) * scale, count: 1, spread: 0.0 },
       ];
 
       crownHeights.forEach((ch) => {
@@ -670,22 +674,6 @@ export class MountainEnvironment {
           addVolumetricLeafClump(tree, cx, ch.y, cz, ch.r, leafMat);
         }
       });
-
-      // 4. Wide perimeter skirt clusters (drooping outer foliage pads giving broad leafy width)
-      const skirtCount = 7;
-      for (let s = 0; s < skirtCount; s++) {
-        const sAng = (s / skirtCount) * Math.PI * 2;
-        const sDist = (3.2 + fullness * 0.9) * scale;
-        const sY = (trunkH * 0.85 + Math.sin(s * 1.5) * 0.4) * scale;
-        addVolumetricLeafClump(
-          tree,
-          Math.cos(sAng) * sDist,
-          sY,
-          Math.sin(sAng) * sDist,
-          (1.25 + fullness * 0.25) * scale,
-          leafMat
-        );
-      }
 
       // Tree overall placement & subtle lean
       tree.position.set(spec.x, 0, spec.z);
@@ -906,8 +894,8 @@ export class MountainEnvironment {
       if (Math.hypot(Math.abs(x) - 3.2, z - 13.5) < 1.8) {
         return true;
       }
-      // 4. Plateau edge boundary
-      if (Math.hypot(x, z) > 23.5) {
+      // 4. Plateau edge boundary & parapet wall (keep grass tufts inside the terrace balustrade)
+      if (Math.hypot(x, z) > 25.5) {
         return true;
       }
       return false;
@@ -938,7 +926,7 @@ export class MountainEnvironment {
         } else {
           // Outer alpine plateau meadows and mounds
           const ang = Math.random() * Math.PI * 2;
-          const rad = 8.5 + Math.random() * 13.5;
+          const rad = 8.5 + Math.random() * 16.5;
           gx = Math.cos(ang) * rad;
           gz = Math.sin(ang) * rad;
         }

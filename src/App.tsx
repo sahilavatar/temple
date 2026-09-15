@@ -2,10 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { TempleCanvas } from './components/TempleCanvas';
 import { ChalisaPlayer } from './components/ChalisaPlayer';
 import { VirtualJoystick } from './components/VirtualJoystick';
-import { Sun, Moon, Wind, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
+import { WelcomeModal } from './components/WelcomeModal';
+import { Sun, Moon, Wind, Volume2, VolumeX, Gamepad2, Maximize, Minimize, HelpCircle } from 'lucide-react';
 import { mountainAmbience } from './audio/MountainAmbience';
 
 export default function App() {
+  // Welcome & Controls Landing Screen
+  const [showWelcome, setShowWelcome] = useState<boolean>(true);
+
   // Day-Dusk Cycle State: 0.0 = Crisp Day, 0.55 = Golden Dusk / Sunset, 1.0 = Twilight Night
   const [timeOfDay, setTimeOfDay] = useState<number>(0.0);
   const [isAutoCycle, setIsAutoCycle] = useState<boolean>(false);
@@ -20,22 +24,90 @@ export default function App() {
   // Virtual joystick visibility (defaults to true so it is immediately visible on mobile, tablet, and desktop)
   const [isJoystickVisible, setIsJoystickVisible] = useState<boolean>(true);
 
+  // Fullscreen state and iOS tip banner
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showIosTip, setShowIosTip] = useState<boolean>(false);
+
   // Virtual joystick vector for mobile/tablet touchscreen walking
   const joystickVectorRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const handleJoystickMove = (vec: { x: number; y: number }) => {
     joystickVectorRef.current = vec;
   };
 
-  useEffect(() => {
-    // Start ambient mountain soundscape on mount / gesture
+  const handleEnterTemple = () => {
+    setShowWelcome(false);
     mountainAmbience.start();
+  };
+
+  useEffect(() => {
     return () => {
       mountainAmbience.stop();
     };
   }, []);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const doc = document as any;
+      const isFull = Boolean(
+        doc.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
+      );
+      setIsFullscreen(isFull);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      const doc = document as any;
+      const docEl = document.documentElement as any;
+
+      if (!isFullscreen) {
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+        } else if (docEl.mozRequestFullScreen) {
+          await docEl.mozRequestFullScreen();
+        } else if (docEl.msRequestFullscreen) {
+          await docEl.msRequestFullscreen();
+        } else {
+          setShowIosTip(true);
+          setTimeout(() => setShowIosTip(false), 5500);
+        }
+      } else {
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        } else if (doc.mozCancelFullScreen) {
+          await doc.mozCancelFullScreen();
+        } else if (doc.msExitFullscreen) {
+          await doc.msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen request failed or restricted:', err);
+      setShowIosTip(true);
+      setTimeout(() => setShowIosTip(false), 5500);
+    }
+  };
+
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-stone-950 font-sans select-none">
+    <div className="relative w-screen h-screen h-[100dvh] overflow-hidden bg-stone-950 font-sans select-none">
       {/* 3D Virtual Hanuman Temple Canvas */}
       <TempleCanvas
         timeOfDay={timeOfDay}
@@ -47,11 +119,13 @@ export default function App() {
       />
 
       {/* Mini Joystick Controller for Mobile, Tablet & Touchscreen Walking */}
-      <VirtualJoystick onMove={handleJoystickMove} visible={isJoystickVisible} />
+      <VirtualJoystick onMove={handleJoystickMove} visible={isJoystickVisible && !showWelcome} />
 
       {/* Top Header: Temple Title on Left & Chalisa Quick Bar on Right */}
-      <header className="pointer-events-none fixed top-0 inset-x-0 z-30 p-2.5 sm:p-4 md:p-5 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
-        {/* Sacred Temple Badge */}
+      <header className={`pointer-events-none fixed top-0 inset-x-0 z-30 p-2.5 sm:p-4 md:p-5 flex flex-wrap items-center justify-between gap-2 sm:gap-4 transition-opacity duration-300 ${
+        showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}>
+        {/* Sacred Temple Badge & Guide Button */}
         <div className="pointer-events-auto flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-stone-900/90 border border-amber-500/35 shadow-2xl backdrop-blur-md">
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-orange-600 via-amber-500 to-yellow-400 flex items-center justify-center text-stone-950 font-bold shadow-md shrink-0">
             <span className="font-serif text-sm sm:text-base select-none">ॐ</span>
@@ -61,6 +135,19 @@ export default function App() {
               Virtual Hanuman Temple
             </h1>
           </div>
+
+          <div className="h-4 w-px bg-stone-700/80 mx-0.5" />
+
+          {/* Guide / Help button to revisit controls anytime */}
+          <button
+            id="reopen-guide-btn"
+            onClick={() => setShowWelcome(true)}
+            className="p-1 rounded-lg text-stone-400 hover:text-amber-300 hover:bg-stone-800/80 transition-colors cursor-pointer"
+            title="Temple Guide & Controls"
+            aria-label="View Temple Guide and Controls"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Hanuman Chalisa Devotional Quick Bar */}
@@ -71,7 +158,9 @@ export default function App() {
 
       {/* Bottom Floating Control Dock (Positioned on the bottom-right so it never touches the Joystick on bottom-left) */}
       <div
-        className="pointer-events-none fixed z-40 flex items-center gap-2 select-none"
+        className={`pointer-events-none fixed z-40 flex items-center gap-2 select-none transition-opacity duration-300 ${
+          showWelcome ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
         style={{
           right: 'max(12px, env(safe-area-inset-right, 12px))',
           bottom: 'max(14px, env(safe-area-inset-bottom, 14px))',
@@ -198,12 +287,62 @@ export default function App() {
             </span>
           </button>
 
+          <div className="h-4 w-px bg-stone-700/80 mx-0.5" />
+
+          {/* Fullscreen Immersion Toggle Button */}
+          <button
+            id="fullscreen-toggle-btn"
+            onClick={toggleFullscreen}
+            className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+              isFullscreen
+                ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 hover:bg-amber-500/35'
+                : 'bg-stone-800/90 text-stone-300 hover:text-amber-300 border border-stone-700'
+            }`}
+            title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen (Immersion Mode)'}
+            aria-label="Toggle Full Screen"
+          >
+            {isFullscreen ? (
+              <Minimize className="w-3.5 h-3.5 text-amber-400" />
+            ) : (
+              <Maximize className="w-3.5 h-3.5 text-stone-300" />
+            )}
+            <span className="text-[11px] hidden sm:inline">
+              {isFullscreen ? 'Exit' : 'Full'}
+            </span>
+          </button>
+
           {/* Look hint on larger screens */}
           <div className="hidden lg:flex items-center text-[11px] text-stone-400 pl-1 border-l border-stone-700/80">
             <span>Drag to look</span>
           </div>
         </div>
+
+        {/* iOS Safari Home Screen Fullscreen Tip Tooltip */}
+        {showIosTip && (
+          <div className="pointer-events-auto absolute bottom-14 right-0 z-50 w-72 p-3 rounded-2xl bg-stone-900/95 border border-amber-500/50 shadow-2xl backdrop-blur-md text-xs text-stone-200 animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-semibold text-amber-300 flex items-center gap-1">
+                <span>📱 True Fullscreen on iOS</span>
+              </span>
+              <button
+                onClick={() => setShowIosTip(false)}
+                className="text-stone-400 hover:text-stone-200 p-0.5 text-[11px]"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-stone-300 text-[11px] leading-relaxed">
+              In Safari, tap the <strong>Share (⎘)</strong> icon and select <strong>"Add to Home Screen"</strong> to open this temple as a standalone full-screen app with zero tabs or address bar!
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Welcome Landing & Controls Screen */}
+      <WelcomeModal
+        isOpen={showWelcome}
+        onEnter={handleEnterTemple}
+      />
     </div>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "name": "Virtual Hanuman Temple 3D",
+  "short_name": "Hanuman Temple",
+  "description": "An interactive 3D virtual ancient Indian Hindu Hanuman temple featuring POV exploration, authentic architecture, virtual diya lamps, sacred bell ringing, flower offerings, and Hanuman Chalisa devotional player.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0a09",
+  "theme_color": "#0c0a09"
+}
